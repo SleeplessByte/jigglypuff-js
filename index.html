@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Audio Player</title>
+
+        <link rel="stylesheet" href="style.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    </head>
+    <body>
+        <section class="Jigglypuff-player">
+            <h1>Audio Player</h1>
+
+            <audio id="audio">
+                <p>Your browser doesn't support the <code>audio</code> element.</p>
+            </audio>
+
+            <canvas data-jigglypuff="analyser"></canvas
+
+            <div class="meta" data-jigglypuff="meta">
+                <h2 class="track" data-jigglypuff="meta-track">current track</h2>
+
+                <div>
+                    <button data-jigglypuff="next-album"><i class="material-icons">album</i></button>
+                    <span class="album" data-jigglypuff="meta-album">current album</span> -
+                    <span class="artist" data-jigglypuff="meta-artist">current artist</span>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button data-jigglypuff="play"><i class="material-icons">play_arrow</i></button>
+                <button data-jigglypuff="pause"><i class="material-icons">pause</i></button>
+                <button data-jigglypuff="mute"><i class="material-icons">volume_off</i></button>
+                <button data-jigglypuff="prev"><i class="material-icons">skip_previous</i></button>
+                <button data-jigglypuff="next"><i class="material-icons">skip_next</i></button>
+            </div>
+        </section>
+
+        <script src="manifest.js"></script>
+        <script src="id3.js"></script>
+        <script src="script.js"></script>
+    </body>
+</html>
