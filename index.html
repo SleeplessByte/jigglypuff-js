@@ -11,36 +11,96 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     </head>
     <body>
-        <section class="Jigglypuff-player">
-            <h1>Audio Player</h1>
 
+        <section class="album-listing">
+            <div class="hero">
+                <img class="album cover" src="audio/E.R.A - The Outer Regions/cover2.png">
+                <div class="actions"></div>
+                <div class="meta">
+                    <h2 class="album title">E.R.A. - The Outer Regions</h2>
+                    <h3 class="album artist hide-mobile">Derk-Jan Karrenbeld</h3>
+
+                    <span class="album datetime hide-mobile">Released <time>2007</time></span>
+                </div>
+
+                <button class="fab-action" data-jigglypuff="play-album" data-album="1"><i class="material-icons">play_arrow</i></button>
+            </div>
+
+            <div class="album tracks">
+                <table>
+                    <thead>
+                        <tr>
+                            <th colspan="2">Track</th>
+                            <th class="hide-mobile">Artist</th>
+                            <th class="hide-mobile">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-album="1" data-song="0" data-jigglypuff="play-song">
+                            <td>1</td>
+                            <td>Battle of the Fastest</td>
+                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
+                            <td class="hide-mobile">01:38</td>
+                        </tr>
+                        <tr data-album="1" data-song="1" data-jigglypuff="play-song">
+                            <td>2</td>
+                            <td>Bongos of Basra</td>
+                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
+                            <td class="hide-mobile">02:10</td>
+                        </tr>
+                        <tr data-album="1" data-song="2" data-jigglypuff="play-song">
+                            <td>3</td>
+                            <td>Feeling the Voltage</td>
+                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
+                            <td class="hide-mobile">00:58</td>
+                        </tr>
+                        <tr data-album="1" data-song="3" data-jigglypuff="play-song">
+                            <td>4</td>
+                            <td>Field of the Sun</td>
+                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
+                            <td class="hide-mobile">03:12</td>
+                        </tr>
+                        <tr data-album="1" data-song="4" data-jigglypuff="play-song">
+                            <td>5</td>
+                            <td>Walking in the Fields</td>
+                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
+                            <td class="hide-mobile">04:02</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <canvass data-jigglypuff="analyser"></canvas>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <section class="playing-now">
             <audio id="audio">
                 <p>Your browser doesn't support the <code>audio</code> element.</p>
             </audio>
-
-            <canvas data-jigglypuff="analyser"></canvas
-
-            <div class="meta" data-jigglypuff="meta">
-                <h2 class="track" data-jigglypuff="meta-track">current track</h2>
-
-                <div>
-                    <button data-jigglypuff="next-album"><i class="material-icons">album</i></button>
-                    <span class="album" data-jigglypuff="meta-album">current album</span> -
-                    <span class="artist" data-jigglypuff="meta-artist">current artist</span>
-                </div>
+            <img class="album cover" data-jigglypuff="meta-album-cover">
+            <div class="meta">
+                <h2 class="track title" data-jigglypuff="meta-track"></h2>
+                <h3 class="track artist" data-jigglypuff="meta-artist"></h3>
+                <h3 class="track album" data-jigglypuff="meta-album"></h3>
             </div>
-
             <div class="actions">
-                <button data-jigglypuff="play"><i class="material-icons">play_arrow</i></button>
-                <button data-jigglypuff="pause"><i class="material-icons">pause</i></button>
-                <button data-jigglypuff="mute"><i class="material-icons">volume_off</i></button>
-                <button data-jigglypuff="prev"><i class="material-icons">skip_previous</i></button>
-                <button data-jigglypuff="next"><i class="material-icons">skip_next</i></button>
+                <button class="action hide-mobile" data-jigglypuff="prev"><i class="material-icons">skip_previous</i></button>
+                <button class="action" data-jigglypuff="play"><i class="material-icons">play_arrow</i></button>
+                <button class="action" data-jigglypuff="pause"><i class="material-icons">pause</i></button>
+                <button class="action hide-mobile" data-jigglypuff="next"><i class="material-icons">skip_next</i></button>
+
+                <button class="action hide" data-jigglypuff="next-album"><i class="material-icons">album</i></button>
+                <button class="action hide" data-jigglypuff="mute"><i class="material-icons">volume_off</i></button>
+            </div>
+            <div class="track progress" data-jigglypuff="song-progress-track">
+                <div class="indicator" data-jigglypuff="song-progress"></div>
             </div>
         </section>
 
         <script src="manifest.js"></script>
-        <script src="id3.js"></script>
+        <script src="id3.min.js"></script>
+        <script src="Vibrant.min.js"></script>
         <script src="script.js"></script>
     </body>
 </html>
