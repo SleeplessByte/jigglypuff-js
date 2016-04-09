@@ -16,26 +16,6 @@
     var audioElement = document.querySelector( 'audio' );
     var player = Jigglypuff.createPlayer( audioElement );
 
-    /**
-     * Get an album by index
-     * @param  {Integer} i the index in the album
-     * @return {Object} the album
-     */
-    var getAlbum = (function () {
-      var albumsCache = {};
-
-      /**
-       * [description]
-       * @param  {[type]} i [description]
-       * @return {[type]}   [description]
-       */
-      return function( name ) {
-        if ( !albumsCache[ name ] )
-          albumsCache[ name ] = new Album( Manifest.albums[ name ] );
-        return albumsCache[ name ];
-      }
-    })();
-
 
     var fetchId3 = (function () {
       var id3Cache = {};
@@ -216,7 +196,7 @@
 
     var vibrantColor = '#000000';
 
-    audioElement.addEventListener( 'jigglypuff:prepare', function( e ) {
+    audioElement.addEventListener( 'jigglypuffprepare', function( e ) {
       console.log( e );
       if ( e.detail && e.detail.currentSong ) {
         var song = e.detail.currentSong;
@@ -248,12 +228,12 @@
       }
     });
 
-    audioElement.addEventListener( 'jigglypuff:play', function() {
+    audioElement.addEventListener( 'jigglypuffplay', function() {
       actionPlay.style = "display: none;";
       actionPause.style = "display: inline-block;";
     });
 
-    audioElement.addEventListener( 'jigglypuff:pause', function() {
+    audioElement.addEventListener( 'jigglypuffpause', function() {
       actionPause.style = "display: none;";
       actionPlay.style = "display: inline-block;";
     });
@@ -263,9 +243,6 @@
     actionPause.style = "display: inline-block;";
 
     function updateCurrentListing( album, song ) {
-      if ( album === undefined )
-        album = getAlbum( )
-
       for (var i = 0; i < albumListingTracks.childNodes.length; i++) {
         var node = albumListingTracks.childNodes[i];
         if ( node.getAttribute( 'data-album' ) === album.id ) {
@@ -315,7 +292,7 @@
     }
 
     function showCurrentAlbum() {
-      var album = getAlbum( albumDisplay.getAttribute( 'data-album' ) );
+      var album = Album( albumDisplay.getAttribute( 'data-album' ) );
       showAlbumListing( album );
     }
 
@@ -414,7 +391,7 @@
 
     function skipToSongAndPlayAlbum() {
       var song = this.getAttribute( 'data-song' );
-      var album = getAlbum( this.getAttribute( 'data-album' ) );
+      var album = Album( this.getAttribute( 'data-album' ) );
 
       playAlbum.bind( this )();
       while( player.nextSong && player.currentSong.track != +song ) {
@@ -425,7 +402,7 @@
     function playAlbum() {
       var album = this.getAttribute( 'data-album' );
       player.clearHistory();
-      setAlbum( getAlbum( album ) );
+      setAlbum( Album( album ) );
     }
 
     // Start
@@ -433,9 +410,9 @@
     resize();
     drawProgress();
     drawVisualiser();
-    setAlbum( getAlbum( 'era' ) );
+    setAlbum( Album( 'era' ) );
 
-    showAlbumListing( getAlbum( 'era2' ) );
+    showAlbumListing( Album( 'era2' ) );
 
     window.addEventListener( 'resize', resize );
 

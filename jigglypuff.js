@@ -114,26 +114,26 @@
   Player.prototype._onPause = function() {
     console.log( "on:paused", arguments[0] );
     this._paused = true;
-    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuff:pause', { detail: { currentSong: this.currentSong, player: this, paused: this.paused } } ) );
+    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuffpause', { detail: { currentSong: this.currentSong, player: this, paused: this.paused } } ) );
   }
 
   Player.prototype._onPlay = function() {
     console.log( "on:play", arguments[0] );
     this._paused = false;
-    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuff:play', { detail: { currentSong: this.currentSong, player: this, paused: this.paused } } ) );
+    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuffplay', { detail: { currentSong: this.currentSong, player: this, paused: this.paused } } ) );
   }
 
   Player.prototype._onVolumeChange = function() {
     console.log( "on:volume", arguments[0] );
     this._volume = this._audioElement.volume;
-    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuff:volume', { detail: { currentSong: this.currentSong, player: this, volume: this.volume } } ) );
+    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuffvolume', { detail: { currentSong: this.currentSong, player: this, volume: this.volume } } ) );
   }
 
   Player.prototype._onLoadPrepare = function() {
     console.log( "on:prepare", arguments[0] );
     this._playable = false;
     this._progress = 0;
-    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuff:prepare', { detail: { currentSong: this.currentSong, player: this, playable: this.playable } } ) );
+    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuffprepare', { detail: { currentSong: this.currentSong, player: this, playable: this.playable } } ) );
   }
 
   Player.prototype._onLoadProgress = function( e ) {
@@ -143,23 +143,23 @@
   Player.prototype._onLoadLengthKnown = function() {
     console.log( "on:length", arguments[0] );
     this._duration = this._audioElement.duration;
-    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuff:prepare:duration', { detail: { currentSong: this.currentSong, player: this, playable: this.playable } } ) );
+    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuffprepare:duration', { detail: { currentSong: this.currentSong, player: this, playable: this.playable } } ) );
   }
 
   Player.prototype._onLoadMetaKnown = function() {
     console.log( "on:meta", arguments[0] );
-    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuff:prepare:meta', { detail: { currentSong: this.currentSong, player: this, playable: this.playable } } ) );
+    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuffprepare:meta', { detail: { currentSong: this.currentSong, player: this, playable: this.playable } } ) );
   }
 
   Player.prototype._onPlayable = function() {
     console.log( "on:playable", arguments[0] );
     this._playable = true;
-    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuff:playable', { detail: { currentSong: this.currentSong, player: this, playable: this.playable } } ) );
+    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuffplayable', { detail: { currentSong: this.currentSong, player: this, playable: this.playable } } ) );
   }
 
   Player.prototype._onEnded = function() {
     console.log( "on:end", arguments[0] );
-    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuff:end', { detail: { currentSong: this.currentSong, nextSong: this.nextSong, player: this } } ) );
+    this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuffend', { detail: { currentSong: this.currentSong, nextSong: this.nextSong, player: this } } ) );
 
     this._audioElement.loop = this.repeatOne;
     if ( !this.nextSong && this.repeatNone )

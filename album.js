@@ -1,4 +1,6 @@
 +function() {
+  'use strict';
+
   function Album( source ) {
     for( var k in source ) {
       if ( source.hasOwnProperty(k))
@@ -36,5 +38,25 @@
     return this.getSong( i ).src;
   }
 
-  window.Album = Album;
+  /**
+   * Get an album by index
+   * @param  {Integer} i the index in the album
+   * @return {Object} the album
+   */
+  var get = (function () {
+    var albumsCache = {};
+
+    /**
+     * [description]
+     * @param  {[type]} i [description]
+     * @return {[type]}   [description]
+     */
+    return function( name ) {
+      if ( !albumsCache[ name ] )
+        albumsCache[ name ] = new Album( Manifest.albums[ name ] );
+      return albumsCache[ name ];
+    }
+  })();
+
+  window.Album = get;
 }();
