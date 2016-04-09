@@ -542,7 +542,7 @@ canvas[data-jigglypuff="analyser"] {
 .album-listing .fab-action {
   position: absolute;
   bottom: 2rem;
-  right: .5rem;
+  right: 1rem;
   height: 4rem;
   width: 4rem;
   overflow: hidden;
