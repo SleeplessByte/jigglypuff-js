@@ -433,45 +433,64 @@ textarea {
           box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.3);
 }
 
-body {
-  background-color: rgb( 50, 50, 50 );
+html {
+  background-attachment: fixed;
+  background-color: rgb( 50, 50, 50 ) ;
+  background-repeat: no-repeat;
+  -webkit-background-size: cover;
+     -moz-background-size: cover;
+       -o-background-size: cover;
+          background-size: cover;
+  background-position: center center;
 }
 
 canvas[data-jigglypuff="analyser"] {
   width: 100%;
   height: 6rem;
   position: fixed;
-  bottom: 3.5rem;
+  bottom: 4rem;
   opacity: 0.5;
-  max-width: 50rem;
+  max-width: 46rem;
   pointer-events: none;
 }
 
 .album-listing {
   width: 100%;
-  max-width: 50rem;
+  max-width: 46rem;
   margin: 0 auto;
   box-shadow: 0 0 5px 3px rgba(0,0,0,0.4);
+  transform: translateY( calc( 100vh - 21.375rem ) );
 }
 
 .album-listing .hero {
-  height: 15rem;
+  /* height: auto; */
   width: 100%;
-  background: rgb( 250, 250, 250 );
+  background: rgb(220, 220, 220);
   position: relative;
+  transition: background-color 500ms ease;
 }
 
 .album-listing .album.cover {
-  height: 100%;
-  width: 15rem;
-  display: inline-block;
+  height: 17.375rem;
+  width: 17.375rem;
+  display: block;
+  transition: background-color 500ms ease;
+}
+
+.album-listing .styling {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 1rem;
+  width: 16.375rem;
+  padding: 0.5rem;
 }
 
 .album-listing .actions {
-  height: 3.5rem;
+  height: 4rem;
   /*background-color: rgba( 0, 0, 0, 0.1 );*/
   position: absolute;
-  left: 15rem;
+  left: 17.375rem;
   right: 0;
   top: 0;
 }
@@ -479,31 +498,44 @@ canvas[data-jigglypuff="analyser"] {
 .album-listing .meta {
   display: inline-block;
   position: absolute;
-  left: 15rem;
+  left: 17.375rem;
   right: 0;
-  top: 3.5rem;
+  top: 4rem;
   bottom: 0;
+  height: 13.375rem;
 }
 
 .album-listing .meta .album.title {
-    margin: 0;
-    padding: 1rem;
+  margin: 0;
+  padding: 0 2rem 0 2rem;
+  margin-bottom: 1rem;
+  font-weight: normal;
+  font-size: 2rem;
+
+  color: rgba( 0, 0, 0, .54 );
 }
 
 .album-listing .meta .album.artist {
-    margin: 0;
-    padding-left: 1rem;
+  margin: 0;
+  padding: 0 2rem 0 2rem;
+  font-weight: bold;
+  font-size: 1rem;
+
+  color: rgba( 0, 0, 0, .87 );
 }
 
 .album-listing .meta .album.datetime {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 4rem;
-    background: rgba(0, 0, 0, 0.05);
-    padding-left: 1rem;
-    line-height: 4rem;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4rem;
+  background: rgba( 0, 0, 0, 0.05);
+  padding: 0 2rem 0 2rem;
+  line-height: 4rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: rgba( 0, 0, 0, .87 );
 }
 
 .album-listing .fab-action {
@@ -520,24 +552,49 @@ canvas[data-jigglypuff="analyser"] {
 }
 
 .album-listing .fab-action:hover {
-    box-shadow: 1px 1px 3px rgba( 0,0,0, 0.4);
+    box-shadow: 1px 1px 3px rgba( 0,0,0, 0.4 );
 }
 
-@media (max-width: 767px) {
+.swatch {
+  display: inline-block;
+  border: 1px solid rgba( 0, 0, 0, 0.3 );
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-right: 0.5rem;
+  transition: background-color 500ms ease;
+}
+
+@media (max-width: 599px) {
+  .album-listing {
+    transform: translateY(0);
+    height: 100%;
+  }
+
   .album-listing .album.cover {
     width: 100%;
     /* max-height: 40rem; */
-    height: 100vw;
+    height: 100%;
+    display: block;
+  }
+
+  .album-listing .styling {
+    padding: 0;
+    top: 0;
+    left: 0.5rem;
   }
 
   .album-listing .fab-action {
-    top: calc( 100vw - 2.2rem );
-    bottom: inherit;
+    bottom: 0.5rem;
+    color: white;
+    background: none;
   }
 
   .album-listing .hero {
-    height: inherit;
-    /* max-height: 20rem; */
+    height: 100vw;
+    width: 100vw;
   }
 
   .album-listing .actions {
@@ -545,10 +602,15 @@ canvas[data-jigglypuff="analyser"] {
   }
 
   .album-listing .meta {
-    position: relative;
-    top: 0;
+    height: 100%;
     left: 0;
-    /* right: 0; */
+    top: 0;
+  }
+
+  .album-listing .meta .album.title {
+    position: absolute;
+    bottom: 0;
+    margin-right: 3rem;
   }
 }
 
@@ -556,7 +618,9 @@ canvas[data-jigglypuff="analyser"] {
 .album-listing .album.tracks {
   background: #e3e3e3;
   /* padding: 2rem; */
-  height: calc( 100vh - 15rem );
+  /* height: calc( 100vh - 17.35rem ); */
+  /* margin-top: calc( 100vh - 30rem ); */
+  padding-bottom: 5rem;
   position: relative;
   overflow: auto;
 }
@@ -569,24 +633,48 @@ canvas[data-jigglypuff="analyser"] {
 
 .album-listing .album.tracks thead tr th {
   padding-top: 2rem;
-  padding-bottom: 1.5rem;
-  text-align: left
+  padding-bottom: 2rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: rgba( 0, 0, 0, .30 );
+}
+
+.album-listing .album.tracks tbody tr {
+  transition: background-color 250ms ease;
 }
 
 .album-listing .album.tracks tbody tr td {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .album-listing .album.tracks tbody tr:hover {
-  background: black;
-  color: white;
+  background-color: rgba( 0, 0, 0, .3 ) !important;
+  cursor: pointer;
+}
+
+.album-listing .album.tracks tbody tr.active {
+  background-color: rgba( 0, 0, 0, .1 );
   cursor: pointer;
 }
 
 .album-listing .album.tracks thead tr th:first-child,
 .album-listing .album.tracks  tbody tr td:first-child {
   padding-left: 2rem;
+  padding-right: 1rem;
+}
+
+.album-listing .album.tracks  tbody tr td:first-child {
+  width: 1.5rem;
+  padding-right: 1rem;
+}
+
+.album-listing .album.tracks  tbody tr td:nth-child(2) {
+  width: 14.875rem;
+  max-width: 14.875rem;
 }
 
 .album-listing .album.tracks thead tr th:last-child,
@@ -597,14 +685,28 @@ canvas[data-jigglypuff="analyser"] {
 
 .album-listing .album.tracks  tbody tr td:first-child,
 .album-listing .album.tracks  tbody tr td:last-child {
-  color: grey;
+  color: rgba( 0, 0, 0, 0.30 );
+  font-size: 0.9rem;
+  font-weight: bold;
 }
 
-@media (max-width: 767px) {
+
+@media (max-width: 599px) {
   .album-listing .album.tracks {
-    min-height: calc( 100vh - 100vw - 7.5rem );
-    height: inherit;
-    margin-bottom: 3.5rem;
+    min-height: calc( 100vh - 100vw - 6rem );
+  }
+
+  .album-listing .album.tracks {
+    padding-top: 1rem;
+  }
+
+  .album-listing .album.tracks  tbody tr td:nth-child(2) {
+    width: auto;
+  }
+
+  .album-listing .album.tracks tbody tr td {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 }
 
@@ -612,9 +714,9 @@ canvas[data-jigglypuff="analyser"] {
   box-shadow: 0 -2px 2px rgba(0,0,0,0.2);
   position: fixed;
   bottom: 0;
-  width: 100%;
-  height: 3.5rem;
-  max-width: 50rem;
+  width: 100vw;
+  height: 4rem;
+  max-width: 46rem;
   background: #e8e8e8;
   left: 0;
   right: 0;
@@ -623,21 +725,22 @@ canvas[data-jigglypuff="analyser"] {
 
 .playing-now .album.cover {
   height: 100%;
-  width: 3.5rem;
+  width: 4rem;
   display: inline-block;
   vertical-align: middle;
+  background-color: black;
+  transition: background-color 250ms ease;
+
+  cursor: pointer;
 }
 
 .playing-now .meta {
   display: inline-block;
   height: 100%;
-
   min-width: 10rem;
-
   vertical-align: middle;
-
   position: absolute;
-  left: 3.5rem;
+  left: 4rem;
   right: 0;
 }
 
@@ -645,20 +748,19 @@ canvas[data-jigglypuff="analyser"] {
   font-size: 0.9rem;
   padding: 0;
   margin: 0;
-
   position: absolute;
-  top: 0.65rem;
+  top: 1rem;
   left: 1rem;
+  color: rgba( 0,0,0,.87);
 }
 
 .playing-now .track.artist {
   font-size: 0.8rem;
-  color: rgba( 0, 0, 0, 0.8 );
+  color: rgba( 0, 0, 0, 0.54 );
   padding: 0;
   margin: 0;
-
   position: absolute;
-  bottom: 0.65rem;
+  bottom: 0.8rem;
   left: 1rem;
 }
 
@@ -671,7 +773,7 @@ canvas[data-jigglypuff="analyser"] {
   right: 0;
   top: 0;
   bottom: 0;
-  padding: 0.2rem;
+  padding: 0.4rem;
 }
 
 .playing-now .actions .action {
@@ -686,18 +788,18 @@ canvas[data-jigglypuff="analyser"] {
 .playing-now .track.progress {
   position: absolute;
   top: 0;
-  left: 3.5rem;
+  left: 4rem;
   right: 0;
-  height: 0.2rem;
-
+  height: 0.25rem;
   cursor: pointer;
+  background-color: rgba( 255, 255, 255, .3 );
 }
 
 .playing-now .track.progress .indicator {
   height: 100%;
   background-color: black;
-
-  transition: background-color 300ms ease
+  transition: width 100ms ease,
+              background-color 300ms ease;
 }
 
 .hide {
@@ -708,7 +810,7 @@ canvas[data-jigglypuff="analyser"] {
   vertical-align: middle;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 599px) {
   .hide-mobile {
     display: none;
   }

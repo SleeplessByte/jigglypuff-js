@@ -1,494 +1,445 @@
-document.addEventListener("DOMContentLoaded", function( event ) {
++function() {
   'use strict';
 
-  var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-  var audioElement = document.querySelector( 'audio' );
-  var source = audioContext.createMediaElementSource( audioElement );
-  var gainNode = audioContext.createGain();
-  var analyser = audioContext.createAnalyser();
-  var destination = audioContext.destination;
-
-  var actionPlay = document.querySelector( '[data-jigglypuff="play"]');
-  var actionPause = document.querySelector( '[data-jigglypuff="pause"]');
-  var actionMute = document.querySelector( '[data-jigglypuff="mute"]');
-  var actionNext = document.querySelector( '[data-jigglypuff="next"]');
-  var actionPrev = document.querySelector( '[data-jigglypuff="prev"]');
-  var actionNextAlbum = document.querySelector( '[data-jigglypuff="next-album"]' );
-
-  var albumDisplay = document.querySelector( '[data-jigglypuff="meta-album"]' );
-  var albumCoverDisplay = document.querySelector( '[data-jigglypuff="meta-album-cover"]');
-  var artistDisplay = document.querySelector( '[data-jigglypuff="meta-artist"]' );
-  var trackDisplay = document.querySelector( '[data-jigglypuff="meta-track"]' );
-  var progressDisplay = document.querySelector( '[data-jigglypuff="song-progress"]');
-  var progressTrack = document.querySelector( '[data-jigglypuff="song-progress-track"]');
-  var analyserDisplay = document.querySelector( '[data-jigglypuff="analyser"]' );
-  var canvasContext = analyserDisplay.getContext( '2d' );
-
-  var vibrantColor = '#000000';
-
-  var analyserBufferLength, analyserBuffer, analyserWidth, analyserHeight,
-      analyserPixelPerfectWidth, analyserSkip;
-
-  var albumIndex = 0;
-  var songIndex = 0;
-  var lastSetSong = undefined;
-  var lastVolume = 1;
-  var isPlaying = false;
-
-  var id3Cache = {};
-  var albumsCache = [];
-
-  analyser.minDecibels = -90;
-  //analyser.maxDecibels = -10;
-  analyser.smoothingTimeConstant = 0.85;
-
-  function resize() {
-    analyserDisplay.width = analyserDisplay.getBoundingClientRect().width;
-
-    analyserWidth = analyserDisplay.width;
-    analyserHeight = analyserDisplay.height;
-
-    // find next power of two
-    var size = analyserWidth * 2 - 1;
-    size |= size >> 1;
-    size |= size >> 2;
-    size |= size >> 4;
-    size |= size >> 8;
-    size |= size >> 16;
-    analyser.fftSize = size + 1;
-
-    analyserBufferLength = analyser.frequencyBinCount;
-    analyserBuffer = new Uint8Array( analyserBufferLength );
-
-    // upper part of the graph will be mostly empty
-    analyserPixelPerfectWidth = Math.round( 1.0 / analyserBufferLength * analyserWidth );
-    analyserSkip = 2;
+  function nextPowerOfTwo( v ) {
+    v = v - 1;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    return v + 1;
   }
 
-  function Player( source, destination ) {
+  document.addEventListener("DOMContentLoaded", function( event ) {
 
-  }
-
-  function Album( source ) {
-    var r = {};
-    for( var k in source ) {
-      if ( source.hasOwnProperty(k))
-        r[k] = source[k];
-    };
+    var audioElement = document.querySelector( 'audio' );
+    var player = Jigglypuff.createPlayer( audioElement );
 
     /**
-     *  Makes sure that the index i is a valid song index for an album
-     * @param  {Integer} i the song index
-     * @return {Integer} the index if valid or 0
+     * Get an album by index
+     * @param  {Integer} i the index in the album
+     * @return {Object} the album
      */
-    r.normalizeSongIndex = function( i ) {
-      i = +i;
-      if (i >= this.songs.length || i < 0)
-        i = 0;
-      return i;
+    var getAlbum = (function () {
+      var albumsCache = {};
+
+      /**
+       * [description]
+       * @param  {[type]} i [description]
+       * @return {[type]}   [description]
+       */
+      return function( name ) {
+        if ( !albumsCache[ name ] )
+          albumsCache[ name ] = new Album( Manifest.albums[ name ] );
+        return albumsCache[ name ];
+      }
+    })();
+
+
+    var fetchId3 = (function () {
+      var id3Cache = {};
+
+      /**
+       * [function description]
+       * @param  {[type]} src [description]
+       * @return {[type]}     [description]
+       */
+      return function( song ) {
+
+        if ( id3Cache[ song.src ] ) {
+          updatePlayingNowFromTags( id3Cache );
+          return;
+        }
+
+        id3( song.src, function( err, tags ) {
+          id3Cache[ song.src ] = tags;
+          if ( !err )
+            updatePlayingNowFromTags( id3Cache );
+        });
+      };
+    })();
+
+    function updatePlayingNowFromTags( id3Cache ) {
+      var song = player.currentSong;
+      if ( !id3Cache[ song.src ] )
+        return;
+
+      var tags = id3Cache[ song.src ];
+      if ( !tags )
+        return;
+
+      console.log( "Updating song display with tags for " + song.name, tags );
+
+      var track = song.track;
+      if ( tags.v2 )
+        track = tags.v2.track;
+      else if ( tags.v1 )
+        track = tags.v1.track;
+
+      trackDisplay.innerHTML = tags.title;
+      albumDisplay.innerHTML = tags.album;
+      artistDisplay.innerHTML = tags.artist;
     }
 
     /**
-     * Gets a song in an album
-     * @param  {[type]} i     [description]
+     * [drawProgress description]
+     * @return {[type]} [description]
+     */
+    function drawProgress() {
+      var percentage = audioElement.currentTime / audioElement.duration * 100
+      if ( isNaN( percentage ) )
+        percentage = 0;
+
+      progressDisplay.style = "width: " + percentage + "%; background-color: " + vibrantColor;
+      var progress = requestAnimationFrame( drawProgress );
+    }
+
+
+    /**
+     * [analyseMoment description]
+     * @return {[type]} [description]
+     */
+    function drawVisualiser() {
+      player.analyser.getByteFrequencyData( analyserBuffer );
+
+      canvasContext.clearRect(0, 0, analyserWidth, analyserHeight);
+      //analyserBufferLength is at least the width -> next power of 2
+      for( var i = 0; i < analyserBufferLength; i++ ) {
+        var o = analyserBuffer[i];
+        var barHeight = (o / 255) * analyserHeight + 2;
+        if (i % analyserSkip === 0) {
+          canvasContext.beginPath();
+          canvasContext.rect( analyserPixelPerfectWidth * i, analyserHeight - barHeight, analyserPixelPerfectWidth, barHeight);
+
+          var grad = canvasContext.createLinearGradient(0, analyserHeight,0,0);
+          grad.addColorStop(0, vibrantColor );
+          grad.addColorStop(1, vibrantColor);
+
+          canvasContext.fillStyle = grad;
+          canvasContext.fill();
+
+        }
+      }
+      var analyse = requestAnimationFrame( drawVisualiser );
+    }
+
+    /**
+     * Sets the current album to the index i
+     * @param {Integer} i the album index
+     */
+    function setAlbum( album ) {
+      player.setPlaylist( album.songs.map( function(s) { s.album = album; return s; } ) ).next();
+    }
+
+    /**
+     * [playAtPosition description]
+     * @param  {[type]} event [description]
      * @return {[type]}       [description]
      */
-    r.getSong = function( i ) {
-      return this.songs[ this.normalizeSongIndex( i ) ];
+    function playAtPosition( event ) {
+      var pos = event.offsetX / progressTrack.getBoundingClientRect().width;
+      player.setPosition( player.duration * pos );
     }
 
     /**
-     * [getSongSrc description]
-     * @param  {[type]} i     [description]
-     * @return {[type]}       [description]
+     * [vibrant description]
+     * @param  {[type]} source [description]
+     * @return {[type]}        [description]
      */
-    r.getSongSrc = function( i ) {
-      return this.src + this.getSong( i ).src;
+    function vibrant( source ) {
+      var vibrant = new Vibrant( source );
+      return vibrant.swatches();
+      /*
+       * Results into:
+       * Vibrant #7a4426
+       * Muted #7b9eae
+       * DarkVibrant #348945
+       * DarkMuted #141414
+       * LightVibrant #f3ccb4
+       */
     }
 
-    return r;
-  }
+    /**
+     * [resize description]
+     * @return {[type]} [description]
+     */
+    function resize() {
+      analyserDisplay.width = analyserDisplay.getBoundingClientRect().width;
+      analyserWidth = analyserDisplay.width;
+      analyserHeight = analyserDisplay.height;
+      player.analyser.fftSize = nextPowerOfTwo(analyserWidth * 2);
 
-  /**
-   * Sets the volume of the gain node and the audio element
-   * @param {Float} volume level between 0 and 1
-   */
-  function setVolume( volume ) {
-    gainNode.gain.value = volume;
-    audioElement.volume = volume;
-  }
+      analyserBufferLength = player.analyser.frequencyBinCount;
+      analyserBuffer = new Uint8Array( analyserBufferLength );
 
-  /**
-   * Get an album by index
-   * @param  {Integer} i the index in the album
-   * @return {Object} the album
-   */
-  function getAlbum( i ) {
-    i = normalizeAlbumIndex(i);
-    if ( !albumsCache[ i ] )
-      albumsCache[ i ] = new Album( Manifest.albums[ i ] );
-    return albumsCache[ i ];
-  }
-
-  /**
-   * Makes sure that the index i is a valid index for an album
-   * @param  {Integer} i the index
-   * @return {Integer} i if valid or 0
-   */
-  function normalizeAlbumIndex( i ) {
-    i = +i;
-    if (i >= Manifest.albums.length || i < 0)
-      i = 0;
-    return i;
-  }
-
-  /**
-   * Sets the current album to the index i
-   * @param {Integer} i the album index
-   */
-  function setAlbum( i ) {
-    albumIndex = normalizeAlbumIndex( i );
-    songIndex = 0;
-    setSong( getAlbum( albumIndex ), songIndex );
-  }
-
-  /**
-   * [setSongSrc description]
-   * @param {[type]} src [description]
-   */
-  function setSongSrc( src ) {
-    if ( lastSetSong != src ) {
-
-      // Force garbage collection
-      //audioElement.src = "";
-      //audioElement.load();
-
-      // Load song
-      console.log( "Loading song " + src );
-      audioElement.src = src;
-      audioElement.load();
-
-      lastSetSong = src;
+      // upper part of the graph will be mostly empty
+      analyserPixelPerfectWidth = Math.round( 1.0 / analyserBufferLength * analyserWidth );
+      analyserSkip = 2;
     }
 
-    play();
-  }
+    var analyserBufferLength, analyserBuffer, analyserWidth, analyserHeight,
+        analyserPixelPerfectWidth, analyserSkip;
 
-  /**
-   * [setSong description]
-   * @param {[type]} album [description]
-   * @param {[type]} i     [description]
-   */
-  function setSong( album, i ) {
-    setSongSrc( album.getSongSrc( i ) );
-    //updateSongDisplay( album, i );
-  }
+    player.analyser.minDecibels = -90;
+    player.analyser.maxDecibels = -10;
+    player.analyser.smoothingTimeConstant = 0.85;
 
-  /**
-   * [next description]
-   * @return {Function} [description]
-   */
-  function next() {
-    var album = getCurrentAlbum();
-    songIndex = album.normalizeSongIndex( songIndex + 1 );
-    setSong( album, songIndex );
-  }
+    var actionPlay = document.querySelector( '[data-jigglypuff="play"]');
+    var actionPause = document.querySelector( '[data-jigglypuff="pause"]');
+    var actionMute = document.querySelector( '[data-jigglypuff="mute"]');
+    var actionNext = document.querySelector( '[data-jigglypuff="next"]');
+    var actionPrev = document.querySelector( '[data-jigglypuff="prev"]');
+    var actionPlayAlbum = document.querySelector( '.album-listing .fab-action' );
 
-  /**
-   * [prev description]
-   * @return {[type]} [description]
-   */
-  function prev() {
-    var album = getCurrentAlbum();
-    songIndex = album.normalizeSongIndex( songIndex - 1 );
-    setSong( album, songIndex );
-  }
+    var albumCoverDisplay = document.querySelector( '[data-jigglypuff="meta-album-cover"]');
+    var albumDisplay = document.querySelector( '[data-jigglypuff="meta-album"]' );
+    var artistDisplay = document.querySelector( '[data-jigglypuff="meta-artist"]' );
+    var trackDisplay = document.querySelector( '[data-jigglypuff="meta-track"]' );
+    var progressDisplay = document.querySelector( '[data-jigglypuff="song-progress"]');
+    var progressTrack = document.querySelector( '[data-jigglypuff="song-progress-track"]');
+    var analyserDisplay = document.querySelector( '[data-jigglypuff="analyser"]' );
+    var canvasContext = analyserDisplay.getContext( '2d' );
 
-  /**
-   * [nextAlbum description]
-   * @return {[type]} [description]
-   */
-  function nextAlbum() {
-    albumIndex = normalizeAlbumIndex( albumIndex + 1 );
-    songIndex = 0;
+    var albumListingHero = document.querySelector( '.album-listing .hero' );
+    var albumListingNodes = document.querySelectorAll( '.album-listing .album' );
+    var albumListingTracks =document.querySelector( '.album-listing .album.tracks tbody' );
 
-    var album = getCurrentAlbum();
-    setSong( album, songIndex );
-  }
+    actionPlay.addEventListener( 'click', player.play.bind( player ) );
+    actionPause.addEventListener( 'click', player.pause.bind( player ) );
+    actionNext.addEventListener( 'click', player.next.bind( player ) );
+    actionPrev.addEventListener( 'click', player.previous.bind( player ) );
+    actionMute.addEventListener( 'click', player.toggleMute.bind( player ) );
+    albumCoverDisplay.addEventListener( 'click', showCurrentAlbum );
+    progressTrack.addEventListener( 'click', playAtPosition );
+    actionPlayAlbum.addEventListener( 'click', playAlbum );
 
-  /**
-   * [play description]
-   * @return {[type]} [description]
-   */
-  function play() {
-    var wasPaused = audioElement.paused;
-    audioElement.play();
+    var vibrantColor = '#000000';
 
-    if ( wasPaused )
-      updateProgress();
+    audioElement.addEventListener( 'jigglypuff:prepare', function( e ) {
+      console.log( e );
+      if ( e.detail && e.detail.currentSong ) {
+        var song = e.detail.currentSong;
 
+        trackDisplay.innerHTML = song.name;
+        trackDisplay.setAttribute( 'data-song', song.track );
+        artistDisplay.innerHTML = song.artist;
+
+        if ( song.album  ) {
+          var album = e.detail.currentSong.album;
+          albumCoverDisplay.style = "background-color: " + album.color;
+          albumDisplay.setAttribute( 'data-album', album.id );
+          albumDisplay.innerHTML = album.name;
+
+          updateCurrentListing( album, song );
+
+          var image = new Image();
+          image.addEventListener( 'load', function() {
+            albumCoverDisplay.src = album.thumb;
+            var swatches = vibrant( image );
+            if (swatches.hasOwnProperty( 'Vibrant' ) && swatches['Vibrant'])
+              vibrantColor = swatches['Vibrant'].getHex()
+
+          } );
+          image.src = album.thumb;
+        }
+
+        fetchId3( song );
+      }
+    });
+
+    audioElement.addEventListener( 'jigglypuff:play', function() {
+      actionPlay.style = "display: none;";
+      actionPause.style = "display: inline-block;";
+    });
+
+    audioElement.addEventListener( 'jigglypuff:pause', function() {
+      actionPause.style = "display: none;";
+      actionPlay.style = "display: inline-block;";
+    });
+
+    // Setup
     actionPlay.style = "display: none;";
     actionPause.style = "display: inline-block;";
-  }
 
-  function playAtPosition( event ) {
-    var pos = event.offsetX / progressTrack.getBoundingClientRect().width;
-    playAtDuration( audioElement.duration * pos );
-  }
+    function updateCurrentListing( album, song ) {
+      if ( album === undefined )
+        album = getAlbum( )
 
-  function playAtDuration( duration ) {
-    audioElement.currentTime = duration;
+      for (var i = 0; i < albumListingTracks.childNodes.length; i++) {
+        var node = albumListingTracks.childNodes[i];
+        if ( node.getAttribute( 'data-album' ) === album.id ) {
+          if ( +node.getAttribute( 'data-song' ) === +song.track ) {
+            node.classList.add( 'active' );
+            continue;
+          }
+        }
 
-    if ( audioElement.paused )
-      updateProgress();
-  }
-
-  /**
-   * [pause description]
-   * @return {[type]} [description]
-   */
-  function pause() {
-    audioElement.pause();
-
-    actionPause.style = "display: none;";
-    actionPlay.style = "display: inline-block;";
-  }
-
-  /**
-   * [getCurrentAlbum description]
-   * @return {[type]} [description]
-   */
-  function getCurrentAlbum() {
-    return getAlbum( albumIndex );
-  }
-
-  /**
-   * Update the playing now display
-   */
-  function updateMetaDisplay() {
-    var album = getCurrentAlbum();
-    var song = album.getSong( songIndex );
-    var src = album.getSongSrc( songIndex );
-
-    albumCoverDisplay.style = "background-color: " + album.color;
-    albumCoverDisplay.src = album.thumb;
-
-    if ( id3Cache[ src ] ) {
-      updateSongDisplayFromTags( album, songIndex );
-      return;
-    }
-    updateSongDisplay( album, songIndex );
-
-    console.warn( "Try to fetch tags for " + src );
-    id3( src, function( err, tags ) {
-      id3Cache[ src ] = tags;
-
-      if ( !err )
-        updateMetaDisplay();
-    } );
-  }
-
-  /**
-   * [updateSongDisplay description]
-   * @param  {[type]} album [description]
-   * @param  {[type]} i     [description]
-   */
-  function updateSongDisplay( album, i ) {
-    var song = album.getSong( songIndex );
-    var src = album.getSongSrc( i );
-
-    console.log( "Updating song display for " + src );
-
-    trackDisplay.innerHTML = song.track + ". " + song.name;
-    albumDisplay.innerHTML = album.name;
-    artistDisplay.innerHTML = song.artist;
-  }
-
-  /**
-   * [updateSongDisplayFromTags description]
-   * @param  {[type]} album [description]
-   * @param  {[type]} i     [description]
-   */
-  function updateSongDisplayFromTags( album, i ) {
-    var song = album.getSong( songIndex );
-    var src = album.getSongSrc( i );
-    var tags = id3Cache[ src ];
-
-    if ( !tags )
-      return;
-
-    console.log( "Updating song display with tags for " + src );
-    console.log( tags );
-
-    var track = i;
-    if ( tags.v2 )
-      track = tags.v2.track;
-    else if ( tags.v1 )
-      track = tags.v1.track;
-
-    trackDisplay.innerHTML = track + ". " + tags.title;
-    albumDisplay.innerHTML = tags.album;
-    artistDisplay.innerHTML = tags.artist;
-  }
-
-  /**
-   * [mute description]
-   * @return {[type]} [description]
-   */
-  function mute() {
-    if ( audioElement.volume != 0 )
-      lastVolume = audioElement.volume;
-
-    setVolume( 0 );
-
-    actionMute.removeEventListener( 'click', mute );
-    actionMute.addEventListener( 'click', unmute );
-  }
-
-  /**
-   * [unmute description]
-   * @return {[type]} [description]
-   */
-  function unmute() {
-    setVolume( lastVolume );
-
-    actionMute.removeEventListener( 'click', unmute );
-    actionMute.addEventListener( 'click', mute );
-  }
-
-  function vibrant() {
-    var vibrant = new Vibrant( albumCoverDisplay );
-    var swatches = vibrant.swatches()
-    if (swatches.hasOwnProperty( 'Vibrant' ) && swatches['Vibrant'])
-      vibrantColor = swatches['Vibrant'].getHex()
-
-    /*
-     * Results into:
-     * Vibrant #7a4426
-     * Muted #7b9eae
-     * DarkVibrant #348945
-     * DarkMuted #141414
-     * LightVibrant #f3ccb4
-     */
-  }
-
-  /**
-   * [analyseMoment description]
-   * @return {[type]} [description]
-   */
-  function analyseMoment() {
-    analyser.getByteFrequencyData( analyserBuffer );
-
-    canvasContext.clearRect(0, 0, analyserWidth, analyserHeight);
-    //analyserBufferLength is at least the width -> next power of 2
-    for( var i = 0; i < analyserBufferLength; i++ ) {
-      var o = analyserBuffer[i];
-      var barHeight = (o / 255) * analyserHeight + 2;
-      if (i % analyserSkip === 0) {
-        canvasContext.beginPath();
-        canvasContext.rect( analyserPixelPerfectWidth * i, analyserHeight - barHeight, analyserPixelPerfectWidth, barHeight);
-
-        var grad = canvasContext.createLinearGradient(0, analyserHeight,0,0);
-        grad.addColorStop(0, vibrantColor );
-        grad.addColorStop(1, vibrantColor);
-
-        canvasContext.fillStyle = grad;
-        canvasContext.fill();
-
+        node.classList.remove( 'active' );
       }
     }
-    var analyse = requestAnimationFrame( analyseMoment );
-  }
 
-  function updateProgress( stop ) {
-    var percentage = audioElement.currentTime / audioElement.duration * 100
-    if ( isNaN( percentage ) )
-      percentage = 0;
+    /**
+     * [styleAlbumListing description]
+     * @param  {[type]} swatches [description]
+     * @return {[type]}          [description]
+     */
+    function styleAlbumListing( swatches ) {
+      var node;
+      var styling = document.querySelector( '.album-listing .styling' );
+      while (styling.lastChild) {
+        styling.removeChild(styling.lastChild);
+      }
 
-    progressDisplay.style = "width: " + percentage + "%; background-color: " + vibrantColor;
+      function addSwatch( color, name ) {
+        node = document.createElement( 'div' );
+        node.classList.add( 'swatch' );
+        node.classList.add( name );
+        node.style = "background-color: " + color;
+        styling.appendChild( node );
+      }
 
-    if ( !audioElement.paused )
-      var progress = requestAnimationFrame( updateProgress );
-  }
+      var setHero = false;
+      [ 'LightVibrant', 'Vibrant', 'DarkVibrant', 'DarkMuted', 'Muted', 'LightMuted' ].forEach( function( e, i ) {
+        if (swatches.hasOwnProperty( e) && swatches[e]) {
+          addSwatch( swatches[e].getHex(), e );
 
-  function _playSong() {
-    var song = this.getAttribute( 'data-song' );
-    var album = this.getAttribute( 'data-album' );
+          if ( !setHero ) {
+            var rgb = swatches[e].getRgb();
+            albumListingHero.style = "background-color: rgb( " + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ");";
+            setHero = true;
+          }
+        }
+      });
 
-    albumIndex = normalizeAlbumIndex( album );
-    var album = getCurrentAlbum();
-    songIndex = album.normalizeSongIndex( song );
-    setSong( album, songIndex );
-  }
+    }
 
-  function _playAlbum() {
-    var album = this.getAttribute( 'data-album' );
-    setAlbum( album );
-  }
+    function showCurrentAlbum() {
+      var album = getAlbum( albumDisplay.getAttribute( 'data-album' ) );
+      showAlbumListing( album );
+    }
 
-  function parse() {
-    var songActions = document.querySelectorAll( '[data-jigglypuff="play-song"]' );
-    for( var i = 0; i < songActions.length; i++ )
-      songActions[i].addEventListener( 'click', _playSong );
+    /**
+     * [showAlbumListing description]
+     * @param  {[type]} album [description]
+     * @return {[type]}       [description]
+     */
+    function showAlbumListing( album ) {
+      document.body.parentElement.style = "";
+      albumListingTracks.setAttribute( 'data-album', album.id );
 
-    var albumActions = document.querySelectorAll( '[data-jigglypuff="play-album"]' );
-      for( var i = 0; i < albumActions.length; i++ )
-        albumActions[i].addEventListener( 'click', _playAlbum );
-  }
+      var bg = new Image();
+      bg.addEventListener( 'load', function() {
+        document.body.parentElement.style = "background-image: url(" + bg.src + ");";
+      } );
+      if ( window.innerWidth > 599 )
+        bg.src = album.artist.srcset.high;
 
-  parse();
+      for (var i = 0; i < albumListingNodes.length; ++i) {
+        var field = albumListingNodes[i];
 
-  // Connect nodes
-  source.connect( analyser );
-  analyser.connect( gainNode );
-  gainNode.connect( destination );
+        if( field.classList.contains( 'cover' ) ) {
+          field.style = "background-color: " + album.color;
+          var image = new Image();
+          image.addEventListener( 'load', (function( _local ) {
+            var _field = _local;
+            return function() {
+              _field.src = album.cover;
+              var swatches = vibrant( image );
+              styleAlbumListing( swatches );
+            };
+          })( field ) );
 
-  // Set some initial volume
-  setVolume( lastVolume );
+          image.src = album.thumb;
+          continue;
+        }
 
-  // Some Debug information
-  console.log( source );
-  console.log( destination );
-  console.log( gainNode );
-  console.log( audioElement.src );
+        if( field.classList.contains( 'title' ) ) {
+          field.innerHTML = album.name;
+          continue;
+        }
 
-  // Bind events
-  actionPlay.addEventListener( 'click', play );
-  actionPause.addEventListener( 'click', pause );
-  actionNext.addEventListener( 'click', next );
-  actionPrev.addEventListener( 'click', prev );
-  actionMute.addEventListener( 'click', mute );
-  actionNextAlbum.addEventListener( 'click', nextAlbum );
-  progressTrack.addEventListener( 'click', playAtPosition );
+        if( field.classList.contains( 'artist' ) ) {
+          field.innerHTML = album.artist.name;
+          continue;
+        }
 
-  audioElement.addEventListener( 'loadedmetadata', updateMetaDisplay );
-  audioElement.addEventListener( 'ended', next );
+        if( field.classList.contains( 'datetime' ) ) {
+          continue;
+        }
+      }
 
-  albumCoverDisplay.addEventListener( 'load', vibrant );
+      actionPlayAlbum.setAttribute( 'data-album', album.id );
 
-  window.addEventListener( 'resize', resize );
+      var tracks = albumListingTracks;
+      tracks.innerHTML = "";
 
-  // Start
-  resize();
-  setSong( getCurrentAlbum(), songIndex );
-  analyseMoment();
+      var currentAlbum = player.currentSong.album;
+      var currentSong = player.currentSong;
 
-  var Jigglypuff = {
-    next: next,
-    prev: prev,
-    play: play,
-    pause: pause,
-    setVolume: setVolume,
-    setAlbum: setAlbum,
-    parse: parse,
+      var row, track, name, artist, duration;
+      var _self = this;
 
-    getCurrentAlbum: getCurrentAlbum,
-    setSong, setSong
-  }
+      album.songs.forEach( function( song, i ) {
+        row = document.createElement( 'tr' );
+        row.setAttribute( 'data-album', album.id );
+        row.setAttribute( 'data-song', song.track );
 
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined')
-    module.exports = Jigglypuff;
-  else
-    window.Jigglypuff = Jigglypuff;
-});
+        if ( currentAlbum.id === album.id && +currentSong.track === +song.track )
+          row.classList.add( 'active' );
+
+        track = document.createElement( 'td' );
+        track.innerHTML = song.track;
+
+        name = document.createElement( 'td' );
+        name.innerHTML = song.name;
+
+        artist = document.createElement( 'td' );
+        artist.setAttribute( 'class', 'hide-mobile');
+        artist.innerHTML = song.artist;
+
+        duration = document.createElement( 'td' );
+        duration.setAttribute( 'class', 'hide-mobile');
+        duration.innerHTML = Math.floor( song.duration / 60 ) + ":" + ("00" + song.duration % 60 ).slice( -2 );
+
+        row.appendChild( track );
+        row.appendChild( name );
+        row.appendChild( artist );
+        row.appendChild( duration );
+        tracks.appendChild( row );
+
+        row.addEventListener( 'click', skipToSongAndPlayAlbum );
+      } );
+    }
+
+    function skipToSongAndPlayAlbum() {
+      var song = this.getAttribute( 'data-song' );
+      var album = getAlbum( this.getAttribute( 'data-album' ) );
+
+      playAlbum.bind( this )();
+      while( player.nextSong && player.currentSong.track != +song ) {
+        player.next();
+      }
+    }
+
+    function playAlbum() {
+      var album = this.getAttribute( 'data-album' );
+      player.clearHistory();
+      setAlbum( getAlbum( album ) );
+    }
+
+    // Start
+    player.setVolume( 0.8 );
+    resize();
+    drawProgress();
+    drawVisualiser();
+    setAlbum( getAlbum( 'era' ) );
+
+    showAlbumListing( getAlbum( 'era2' ) );
+
+    window.addEventListener( 'resize', resize );
+
+    window.Player = player;
+    return;
+  });
+}();

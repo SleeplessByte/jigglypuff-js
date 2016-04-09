@@ -13,13 +13,13 @@
     <body>
 
         <section class="album-listing">
-            <div class="hero">
-                <img class="album cover" src="audio/E.R.A - The Outer Regions/cover2.png">
+            <div class="hero dragscroll">
+                <img class="album cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                <div class="styling"></div>
                 <div class="actions"></div>
                 <div class="meta">
-                    <h2 class="album title">E.R.A. - The Outer Regions</h2>
-                    <h3 class="album artist hide-mobile">Derk-Jan Karrenbeld</h3>
-
+                    <h2 class="album title"></h2>
+                    <h3 class="album artist hide-mobile"></h3>
                     <span class="album datetime hide-mobile">Released <time>2007</time></span>
                 </div>
 
@@ -28,7 +28,7 @@
 
             <div class="album tracks">
                 <table>
-                    <thead>
+                    <thead class="hide-mobile">
                         <tr>
                             <th colspan="2">Track</th>
                             <th class="hide-mobile">Artist</th>
@@ -36,39 +36,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr data-album="1" data-song="0" data-jigglypuff="play-song">
-                            <td>1</td>
-                            <td>Battle of the Fastest</td>
-                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
-                            <td class="hide-mobile">01:38</td>
-                        </tr>
-                        <tr data-album="1" data-song="1" data-jigglypuff="play-song">
-                            <td>2</td>
-                            <td>Bongos of Basra</td>
-                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
-                            <td class="hide-mobile">02:10</td>
-                        </tr>
-                        <tr data-album="1" data-song="2" data-jigglypuff="play-song">
-                            <td>3</td>
-                            <td>Feeling the Voltage</td>
-                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
-                            <td class="hide-mobile">00:58</td>
-                        </tr>
-                        <tr data-album="1" data-song="3" data-jigglypuff="play-song">
-                            <td>4</td>
-                            <td>Field of the Sun</td>
-                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
-                            <td class="hide-mobile">03:12</td>
-                        </tr>
-                        <tr data-album="1" data-song="4" data-jigglypuff="play-song">
-                            <td>5</td>
-                            <td>Walking in the Fields</td>
-                            <td class="hide-mobile">Derk-Jan Karrenbeld</td>
-                            <td class="hide-mobile">04:02</td>
-                        </tr>
                     </tbody>
                     <tfoot>
-                        <canvass data-jigglypuff="analyser"></canvas>
+                        <canvas data-jigglypuff="analyser"></canvas>
                     </tfoot>
                 </table>
             </div>
@@ -78,7 +48,7 @@
             <audio id="audio">
                 <p>Your browser doesn't support the <code>audio</code> element.</p>
             </audio>
-            <img class="album cover" data-jigglypuff="meta-album-cover">
+            <img class="album cover" data-jigglypuff="meta-album-cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
             <div class="meta">
                 <h2 class="track title" data-jigglypuff="meta-track"></h2>
                 <h3 class="track artist" data-jigglypuff="meta-artist"></h3>
@@ -98,9 +68,32 @@
             </div>
         </section>
 
-        <script src="manifest.js"></script>
-        <script src="id3.min.js"></script>
-        <script src="Vibrant.min.js"></script>
-        <script src="script.js"></script>
+        <script>
+        // polyfill CustomEvent
+        +function () {
+          'use strict';
+          if ( typeof window.CustomEvent === "function" ) return false;
+
+          function CustomEvent ( event, params ) {
+            params = params || { bubbles: false, cancelable: false, detail: undefined };
+            var evt = document.createEvent( 'CustomEvent' );
+            evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+            return evt;
+           }
+
+          CustomEvent.prototype = window.Event.prototype;
+
+          window.CustomEvent = CustomEvent;
+        }();
+        </script>
+
+        <script src="dragscroll.min.js"></script>
+
+        <script src="manifest.js" defer></script>
+        <script src="id3.min.js" defer></script>
+        <script src="Vibrant.min.js" defer></script>
+        <script src="jigglypuff.js" defer></script>
+        <script src="album.js" defer></script>
+        <script src="script.js" defer></script>
     </body>
 </html>
