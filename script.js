@@ -191,17 +191,17 @@
 
     var vibrantColor = '#000000';
 
-    audioElement.addEventListener( 'jigglypuffprepare', function( e ) {
-      console.log( e );
-      if ( e.detail && e.detail.currentSong ) {
-        var song = e.detail.currentSong;
+    player.addListener( 'jigglypuff:prepare', function( detail ) {
+      console.log( arguments );
+      if ( detail.currentSong ) {
+        var song = detail.currentSong;
 
         trackDisplay.innerHTML = song.name;
         trackDisplay.setAttribute( 'data-song', song.track );
         artistDisplay.innerHTML = song.artist;
 
         if ( song.album  ) {
-          var album = e.detail.currentSong.album;
+          var album = detail.currentSong.album;
           albumCoverDisplay.style = "background-color: " + album.color;
           albumDisplay.setAttribute( 'data-album', album.id );
           albumDisplay.innerHTML = album.name;
@@ -223,12 +223,12 @@
       }
     });
 
-    audioElement.addEventListener( 'jigglypuffplay', function() {
+    player.addListener( 'jigglypuff:play', function() {
       actionPlay.style = "display: none;";
       actionPause.style = "display: inline-block;";
     });
 
-    audioElement.addEventListener( 'jigglypuffpause', function() {
+    player.addListener( 'jigglypuff:pause', function() {
       actionPause.style = "display: none;";
       actionPlay.style = "display: inline-block;";
     });
