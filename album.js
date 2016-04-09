@@ -1,8 +1,9 @@
 +function() {
   'use strict';
 
-  var albumListingHero, albumListingNodes, albumListingTracks;
-  var actionPlayAlbum;
+  var albumListing, albumListingHero, albumListingNodes, albumListingTracks;
+  var mediaLibrary, mediaLibraryNodes;
+  var actionPlayAlbum, actionGoToLibrary;
 
   function Album( source ) {
     for( var k in source ) {
@@ -86,6 +87,8 @@
    * @return {[type]}                        [description]
    */
   function showAlbumListing( album, player, actionPlayThis ) {
+    albumListing.classList.remove( 'hide' );
+
     document.body.parentElement.style = "";
     albumListingTracks.setAttribute( 'data-album', album.id );
 
@@ -176,6 +179,10 @@
   function updateCurrentListing( album, song ) {
     for (var i = 0; i < albumListingTracks.childNodes.length; i++) {
       var node = albumListingTracks.childNodes[i];
+
+      if ( !node.getAttribute )
+        continue;
+
       if ( node.getAttribute( 'data-album' ) === album.id ) {
         if ( +node.getAttribute( 'data-song' ) === +song.track ) {
           node.classList.add( 'active' );
@@ -199,7 +206,7 @@
       styling.removeChild(styling.lastChild);
     }
 
-    function addSwatch( color, name ) {
+    function addSwatch( styling, color, name ) {
       node = document.createElement( 'div' );
       node.classList.add( 'swatch' );
       node.classList.add( name );
@@ -210,7 +217,7 @@
     var setHero = false;
     [ 'LightVibrant', 'Vibrant', 'DarkVibrant', 'DarkMuted', 'Muted', 'LightMuted' ].forEach( function( e, i ) {
       if (swatches.hasOwnProperty( e) && swatches[e]) {
-        addSwatch( swatches[e].getHex(), e );
+        addSwatch( styling, swatches[e].getHex(), e );
 
         if ( !setHero ) {
           var rgb = swatches[e].getRgb();
@@ -222,17 +229,60 @@
 
   }
 
+  function hideMediaLibrary() {
+    mediaLibrary.classList.add( 'hide' );
+  }
+
+  function showMediaLibrary() {
+    mediaLibrary.classList.remove( 'hide' );
+    albumListing.classList.add( 'hide' );
+  }
+
   window.Album = get;
   window.AlbumListing = {
     show: showAlbumListing,
     update: updateCurrentListing
   }
 
+  window.MediaLibrary = {
+    glue: bindMediaLibraryToAction,
+    hide: hideMediaLibrary,
+    show: showMediaLibrary,
+  }
+
+  function bindMediaLibraryToAction( action ) {
+    for( var i = 0; i < mediaLibraryNodes.length; i++ ) {
+      mediaLibraryNodes[i].addEventListener( 'click', action )
+    }
+  }
+
   document.addEventListener( 'DOMContentLoaded', function( event )  {
+    mediaLibrary = document.querySelector( '.media-library' );
+    mediaLibraryNodes = document.querySelectorAll( '.media-library .media' );
+
+    albumListing = document.querySelector( '.album-listing' );
     albumListingHero = document.querySelector( '.album-listing .hero' );
     albumListingNodes = document.querySelectorAll( '.album-listing .album' );
     albumListingTracks = document.querySelector( '.album-listing .album.tracks tbody' );
 
     actionPlayAlbum = document.querySelector( '.album-listing .fab-action' );
+    actionGoToLibrary = document.querySelector( '[data-jigglypuff="show-media-library"]' );
+    actionGoToLibrary.addEventListener( 'click', window.MediaLibrary.show );
+
+    var style = function( c ) {
+      var swatches = vibrant( c );
+      console.log( swatches );
+      if ( swatches[ "DarkMuted" ] )
+        c.parentElement.style = "background-color: " + swatches[ "DarkMuted" ].getHex();
+    }
+
+    for( var i = 0; i < mediaLibraryNodes.length; i++ ) {
+      var img = mediaLibraryNodes[i].childNodes[0];
+      img.addEventListener( 'load', function() {
+        style( img );
+      });
+      if( img.complete )
+        style( img );
+    }
   } );
 }();

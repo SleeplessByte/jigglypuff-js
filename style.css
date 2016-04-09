@@ -423,16 +423,6 @@ textarea {
   -webkit-appearance: none;
 }
 
-.Jigglypuff-player {
-  max-width: 30rem;
-  margin: 2rem auto 0 auto;
-  padding: 1rem;
-
-  -webkit-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.3);
-     -moz-box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.3);
-          box-shadow: 3px 3px 5px 0px rgba(0,0,0,0.3);
-}
-
 html {
   background-attachment: fixed;
   background-color: rgb( 50, 50, 50 ) ;
@@ -444,14 +434,78 @@ html {
   background-position: center center;
 }
 
-canvas[data-jigglypuff="analyser"] {
+.media-library {
   width: 100%;
-  height: 6rem;
-  position: fixed;
-  bottom: 4rem;
-  opacity: 0.5;
-  max-width: 46rem;
-  pointer-events: none;
+  padding-bottom: 4rem;
+  min-height: calc( 100vh - 4rem );
+  background-color: rgb( 50, 50, 50 );
+}
+
+.media-library > ul {
+  display: -webkit-flex;
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.media-library > ul > li {
+  display: flex;
+  /*flex: 1 0 15rem;*/
+  width: 25%;
+}
+
+@media( max-width: 767px ) {
+  .media-library > ul > li {
+    width: 33%;
+  }
+}
+
+@media( max-width: 599px ) {
+  .media-library > ul > li {
+    width: 50%;
+  }
+}
+
+@media( max-width: 384px ) {
+  .media-library > ul > li {
+    width: 100%;
+  }
+}
+
+
+.media-library .media {
+  box-sizing: border-box;
+  color: rgba( 255, 255, 255, 0.7 );
+  width: 100%;
+  overflow: hidden;
+  margin: 2px;
+  background: rgb( 30, 30, 30 );
+  transition: background 250ms ease;
+  cursor: pointer;
+}
+
+.media-library .media .album.cover {
+  width: 100%;
+  display: block;
+}
+
+.media-library .media .meta {
+  padding: 1rem;
+}
+
+.media-library .media .meta .album.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.media-library .media .meta .album.artist {
+  margin: 0;
+  font-weight: lighter;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
 }
 
 .album-listing {
@@ -489,11 +543,13 @@ canvas[data-jigglypuff="analyser"] {
 
 .album-listing .actions {
   height: 4rem;
-  /*background-color: rgba( 0, 0, 0, 0.1 );*/
   position: absolute;
   left: 17.375rem;
   right: 0;
   top: 0;
+  padding: 0.4rem;
+  text-align: right;
+  color: rgba( 0, 0, 0, 0.87);
 }
 
 .album-listing .meta {
@@ -503,7 +559,8 @@ canvas[data-jigglypuff="analyser"] {
   right: 0;
   top: 4rem;
   bottom: 0;
-  height: 13.375rem;
+  height: 12.375rem;
+  padding-top: 1rem;
 }
 
 .album-listing .meta .album.title {
@@ -600,12 +657,14 @@ canvas[data-jigglypuff="analyser"] {
 
   .album-listing .actions {
     left: 0;
+    color: rgba( 255, 255, 255, 0.87);
   }
 
   .album-listing .meta {
     height: 100%;
     left: 0;
     top: 0;
+    padding-top: 0;
   }
 
   .album-listing .meta .album.title {
@@ -711,6 +770,17 @@ canvas[data-jigglypuff="analyser"] {
   }
 }
 
+
+canvas[data-jigglypuff="analyser"] {
+  width: 100%;
+  height: 6rem;
+  position: fixed;
+  bottom: 4rem;
+  opacity: 0.5;
+  max-width: 46rem;
+  pointer-events: none;
+}
+
 .playing-now {
   box-shadow: 0 -2px 2px rgba(0,0,0,0.2);
   position: fixed;
@@ -777,14 +847,21 @@ canvas[data-jigglypuff="analyser"] {
   padding: 0.4rem;
 }
 
-.playing-now .actions .action {
+.playing-now .actions .action, .hero .actions .action {
   height: 3rem;
   width: 3rem;
   margin: 0.1rem;
   overflow: hidden;
   border: 0;
   background: transparent;
+  transition: background-color 150ms ease;
+  color: inherit;
 }
+
+.playing-now .actions .action:hover, .hero .actions .action:hover {
+  background-color: rgba( 0, 0, 0, .1 );
+}
+
 
 .playing-now .track.progress {
   position: absolute;
@@ -798,6 +875,7 @@ canvas[data-jigglypuff="analyser"] {
 
 .playing-now .track.progress .indicator {
   height: 100%;
+  width: 0%;
   background-color: black;
   transition: width 100ms ease,
               background-color 300ms ease;

@@ -11,16 +11,40 @@
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     </head>
     <body>
+        <section class="media-library">
+            <ul>
+                <li>
+                    <figure class="media album"  data-album="era" data-jigglypuff="play-album"><img class="album cover" src="audio/E.R.A/cover.png">
+                        <figcaption class="meta">
+                            <h2 class="album title">E.R.A.</h2>
+                            <h3 class="album artist">Milan Rang</h3>
+                        </figcaption>
+                    </figure>
+                </li>
 
-        <section class="album-listing">
+                <li>
+                    <figure class="media album"  data-album="era2" data-jigglypuff="play-album"><img class="album cover" src="audio/E.R.A - The Outer Regions/cover.png">
+                        <figcaption class="meta">
+                            <h2 class="album title">E.R.A. - The Outer Regions</h2>
+                            <h3 class="album artist">Derk-Jan Karrenbeld</h3>
+                        </figcaption>
+                    </figure>
+                </li>
+
+            </ul>
+        </section>
+
+        <section class="album-listing hide">
             <div class="hero">
                 <img class="album cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                 <div class="styling"></div>
-                <div class="actions"></div>
                 <div class="meta">
                     <h2 class="album title"></h2>
                     <h3 class="album artist hide-mobile"></h3>
                     <span class="album datetime hide-mobile">Released <time>2007</time></span>
+                </div>
+                <div class="actions">
+                    <button class="action" data-jigglypuff="show-media-library"><i class="material-icons">library_music</i></button>
                 </div>
 
                 <button class="fab-action" data-jigglypuff="play-album" data-album="1"><i class="material-icons">play_arrow</i></button>

@@ -239,6 +239,7 @@
 
     function showCurrentAlbum() {
       var album = Album( albumDisplay.getAttribute( 'data-album' ) );
+      window.MediaLibrary.hide();
       window.AlbumListing.show( album, player, skipToSongAndPlayAlbum );
     }
 
@@ -265,8 +266,13 @@
       resize();
       drawProgress();
       drawVisualiser();
+
       setAlbum( Album( 'era' ) );
-      window.AlbumListing.show( Album( 'era2' ), player, skipToSongAndPlayAlbum );
+
+      window.MediaLibrary.glue( function( e ) {
+        window.MediaLibrary.hide();
+        window.AlbumListing.show( Album( e.currentTarget.getAttribute( 'data-album' ) ), player, skipToSongAndPlayAlbum );
+      } )
     }, 0 );
 
     window.Player = player;
