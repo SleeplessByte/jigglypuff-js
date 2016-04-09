@@ -132,7 +132,6 @@
   Player.prototype._onLoadPrepare = function() {
     console.log( "on:prepare", arguments[0] );
     this._playable = false;
-    this._progress = 0;
     this._audioElement.dispatchEvent( new CustomEvent( 'jigglypuffprepare', { detail: { currentSong: this.currentSong, player: this, playable: this.playable } } ) );
   }
 
