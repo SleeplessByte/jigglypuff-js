@@ -20,13 +20,6 @@
     return candidates;
   }
 
-  /*
-  parse: parse,
-
-  setAlbum: setAlbum,
-  getCurrentAlbum: getCurrentAlbum,
-  setSong, setSong*/
-
   function Player( audioElement ) {
 
     var _audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -104,6 +97,11 @@
     return this;
   }
 
+  /**
+   * Connects the source, throught the nodes, to the destination
+   * @param  {Array} nodes the nodes
+   * @return {self}        self
+   */
   Player.prototype.connect = function( nodes ) {
     nodes.reduce( function( from, to ) {
       from.connect( to );
@@ -113,54 +111,81 @@
     return this;
   }
 
+  /**
+   * Triggers when the audio is paused
+   */
   Player.prototype._onPause = function() {
     console.log( "on:paused", arguments[0] );
     this._paused = true;
-    this.fire( 'jigglypuff:pause', [{ currentSong: this.currentSong, player: this, paused: this.paused }] );
+    this.trigger( 'jigglypuff:pause', [{ currentSong: this.currentSong, player: this, paused: this.paused }] );
   }
 
+  /**
+   * Triggers when the audio is playing
+   */
   Player.prototype._onPlay = function() {
     console.log( "on:play", arguments[0] );
     this._paused = false;
-    this.fire( 'jigglypuff:play', [{ currentSong: this.currentSong, player: this, paused: this.paused }] );
+    this.trigger( 'jigglypuff:play', [{ currentSong: this.currentSong, player: this, paused: this.paused }] );
   }
 
+  /**
+   * Triggers when the volume is changed
+   */
   Player.prototype._onVolumeChange = function() {
     console.log( "on:volume", arguments[0] );
     this._volume = this._audioElement.volume;
-    this.fire( 'jigglypuff:volume', [{ currentSong: this.currentSong, player: this, volume: this.volume }] );
+    this.trigger( 'jigglypuff:volume', [{ currentSong: this.currentSong, player: this, volume: this.volume }] );
   }
 
+  /**
+   * Triggers when the audio is preparing
+   */
   Player.prototype._onLoadPrepare = function() {
     console.log( "on:prepare", arguments[0] );
     this._playable = false;
-    this.fire( 'jigglypuff:prepare', [{ currentSong: this.currentSong, player: this, playable: this.playable }] );
+    this.trigger( 'jigglypuff:prepare', [{ currentSong: this.currentSong, player: this, playable: this.playable }] );
   }
 
+  /**
+   * Triggers when the file is loading
+   */
   Player.prototype._onLoadProgress = function( e ) {
     //console.log( "on:progress", arguments[0] );
   }
 
+  /**
+   * Triggers when the length is known
+   */
   Player.prototype._onLoadLengthKnown = function() {
     console.log( "on:length", arguments[0] );
     this._duration = this._audioElement.duration;
-    this.fire( 'jigglypuff:duration', [{ currentSong: this.currentSong, player: this, playable: this.playable }] );
+    this.trigger( 'jigglypuff:duration', [{ currentSong: this.currentSong, player: this, playable: this.playable }] );
   }
 
+  /**
+   * Triggers when all meta is known
+   */
   Player.prototype._onLoadMetaKnown = function() {
     console.log( "on:meta", arguments[0] );
-    this.fire( 'jigglypuff:meta', [{ currentSong: this.currentSong, player: this, playable: this.playable }] );
+    this.trigger( 'jigglypuff:meta', [{ currentSong: this.currentSong, player: this, playable: this.playable }] );
   }
 
+  /**
+   * Triggers when the song is playable
+   */
   Player.prototype._onPlayable = function() {
     console.log( "on:playable", arguments[0] );
     this._playable = true;
-    this.fire( 'jigglypuff:playable', [{ currentSong: this.currentSong, player: this, playable: this.playable }] );
+    this.trigger( 'jigglypuff:playable', [{ currentSong: this.currentSong, player: this, playable: this.playable }] );
   }
 
+  /**
+   * Triggers when the song has ended
+   */
   Player.prototype._onEnded = function() {
     console.log( "on:end", arguments[0] );
-    this.fire( 'jigglypuff:end', [{ currentSong: this.currentSong, nextSong: this.nextSong, player: this }] );
+    this.trigger( 'jigglypuff:end', [{ currentSong: this.currentSong, nextSong: this.nextSong, player: this }] );
 
     this._audioElement.loop = this.repeatOne;
     if ( !this.nextSong && this.repeatNone )
@@ -174,21 +199,37 @@
     this.next();
   }
 
+  /**
+   * Sets repeat all
+   * @return {self} self
+   */
   Player.prototype.setRepeatAll = function() {
     this._repeat = -1;
     return this;
   }
 
+  /**
+   * Sets repeat current song
+   * @return {self} self
+   */
   Player.prototype.setRepeatOne = function() {
     this._repeat = 1;
     return this;
   }
 
+  /**
+   * Sets repeat none
+   * @return {self} self
+   */
   Player.prototype.setRepeatNone = function() {
     this._repeat = 0;
     return this;
   }
 
+  /**
+   * Sets the playlist
+   * @return {self} self
+   */
   Player.prototype.setPlaylist = function() {
     var candidates = [].splice.call( splat( arguments ), 0 );
 
@@ -205,6 +246,10 @@
     return this;
   }
 
+  /**
+   * Queue's a song up next
+   * @return {self} self
+   */
   Player.prototype.queue = function() {
     var candidates = [].splice.call( splat( arguments ), 0 );
     (this.shuffle ? shuffle( candidates ) : candidates).forEach( function( a ) {
@@ -216,6 +261,11 @@
     return this;
   }
 
+  /**
+   * Sets the shuffled value. If v, shuffles remaining songs in playlist
+   * @param  {self} v shuffles if true, false otherwise
+   * @return {self}   self
+   */
   Player.prototype.setShuffled = function( v ) {
     this._shuffle = v;
     this._playOrder = v ? shuffle( this._playOrder ) : this._playOrder.sort();
@@ -223,11 +273,19 @@
     return this;
   }
 
+  /**
+   * Clear play history
+   * @return {self} self
+   */
   Player.prototype.clearHistory = function () {
     while( this._played.length )
       this._played.pop();
   }
 
+  /**
+   * Play next song
+   * @return {self} self
+   */
   Player.prototype.next = function() {
 
     if ( !this.nextSong ) {
@@ -244,10 +302,13 @@
     this._played.push( song );
 
     this.play();
-
     return this;
   };
 
+  /**
+   * Play previous song
+   * @return {self} self
+   */
   Player.prototype.previous = function() {
     if ( !this.previousSong ) {
       this._audioElement.load();
@@ -268,6 +329,10 @@
     return this;
   };
 
+  /**
+   * Start playing
+   * @return {self} self
+   */
   Player.prototype.play = function() {
     if ( this._audioElement.src === "" )
       return this.next();
@@ -276,18 +341,30 @@
     return this;
   };
 
+  /**
+   * Pause playing
+   * @return {self} self
+   */
   Player.prototype.pause = function() {
     this._audioElement.pause();
-
     return this;
   };
 
+  /**
+   * Toggle the mute
+   * @return {self} self
+   */
   Player.prototype.toggleMute = function() {
     if ( this.volume === 0 )
       return this.setVolume( this._lastVolume );
     return this.setVolume( 0 );
   };
 
+  /**
+   * Sets the volume
+   * @param  {float} volume the volume between 0 and 1
+   * @return {self}         self
+   */
   Player.prototype.setVolume = function( volume ) {
     this.gainNode.gain.value = volume;
     this._audioElement.volume = volume;
@@ -298,6 +375,11 @@
     return this;
   };
 
+  /**
+   * Sets position in the audio
+   * @param  {integer} time the time to put the position at
+   * @return {self}         self
+   */
   Player.prototype.setPosition = function( time ) {
     if ( this._duration === 0 || isNaN( time ) )
       return;

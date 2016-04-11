@@ -424,21 +424,40 @@ textarea {
 }
 
 html {
+  background-color: rgb( 50, 50, 50 );
+}
+
+[data-jigglypuff="background-cover"] {
   background-attachment: fixed;
-  background-color: rgb( 50, 50, 50 ) ;
   background-repeat: no-repeat;
   -webkit-background-size: cover;
-     -moz-background-size: cover;
-       -o-background-size: cover;
-          background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
   background-position: center center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  position: fixed;
+  z-index: -1;
+  opacity: 0;
+}
+
+[data-jigglypuff="background-cover"].figcaption {
+  display: none;
+}
+
+[data-jigglypuff="background-cover"].loaded {
+  opacity: 1;
+  transition: opacity 500ms ease;
 }
 
 .media-library {
   width: 100%;
   padding-bottom: 4rem;
-  min-height: calc( 100vh - 4rem );
+  min-height: calc( 100vh - 8rem );
   background-color: rgb( 50, 50, 50 );
+  padding-top: 4rem;
 }
 
 .media-library > ul {
@@ -508,7 +527,7 @@ html {
   margin-top: 0.2rem;
 }
 
-.album-listing {
+.track-list {
   width: 100%;
   max-width: 46rem;
   margin: 0 auto;
@@ -517,7 +536,7 @@ html {
   transition: transform 250ms ease;
 }
 
-.album-listing .hero {
+.track-list .hero {
   /* height: auto; */
   width: 100%;
   background: rgb(220, 220, 220);
@@ -525,14 +544,14 @@ html {
   transition: background-color 500ms ease;
 }
 
-.album-listing .album.cover {
+.track-list .album.cover {
   height: 17.375rem;
   width: 17.375rem;
   display: block;
   transition: background-color 500ms ease;
 }
 
-.album-listing .styling {
+.track-list .styling {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -541,7 +560,7 @@ html {
   padding: 0.5rem;
 }
 
-.album-listing .actions {
+.track-list .actions {
   height: 4rem;
   position: absolute;
   left: 17.375rem;
@@ -552,7 +571,7 @@ html {
   color: rgba( 0, 0, 0, 0.87);
 }
 
-.album-listing .meta {
+.track-list .meta {
   display: inline-block;
   position: absolute;
   left: 17.375rem;
@@ -563,7 +582,7 @@ html {
   padding-top: 1rem;
 }
 
-.album-listing .meta .album.title {
+.track-list .meta .album.title {
   margin: 0;
   padding: 0 2rem 0 2rem;
   margin-bottom: 1rem;
@@ -573,7 +592,7 @@ html {
   color: rgba( 0, 0, 0, .54 );
 }
 
-.album-listing .meta .album.artist {
+.track-list .meta .album.artist {
   margin: 0;
   padding: 0 2rem 0 2rem;
   font-weight: bold;
@@ -582,7 +601,7 @@ html {
   color: rgba( 0, 0, 0, .87 );
 }
 
-.album-listing .meta .album.datetime {
+.track-list .meta .album.datetime {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -596,7 +615,7 @@ html {
   color: rgba( 0, 0, 0, .87 );
 }
 
-.album-listing .fab-action {
+.track-list .fab-action {
   position: absolute;
   bottom: 2rem;
   right: 1rem;
@@ -609,7 +628,7 @@ html {
   box-shadow: 1px 1px rgba( 0,0,0, 0.1);
 }
 
-.album-listing .fab-action:hover {
+.track-list .fab-action:hover {
     box-shadow: 1px 1px 3px rgba( 0,0,0, 0.4 );
 }
 
@@ -626,48 +645,48 @@ html {
 }
 
 @media (max-width: 599px) {
-  .album-listing {
+  .track-list {
     transform: translateY(0);
     height: 100%;
   }
 
-  .album-listing .album.cover {
+  .track-list .album.cover {
     width: 100%;
     /* max-height: 40rem; */
     height: 100%;
     display: block;
   }
 
-  .album-listing .styling {
+  .track-list .styling {
     padding: 0;
     top: 0;
     left: 0.5rem;
   }
 
-  .album-listing .fab-action {
+  .track-list .fab-action {
     bottom: 0.5rem;
     color: white;
     background: none;
   }
 
-  .album-listing .hero {
+  .track-list .hero {
     height: 100vw;
     width: 100vw;
   }
 
-  .album-listing .actions {
+  .track-list .actions {
     left: 0;
     color: rgba( 255, 255, 255, 0.87);
   }
 
-  .album-listing .meta {
+  .track-list .meta {
     height: 100%;
     left: 0;
     top: 0;
     padding-top: 0;
   }
 
-  .album-listing .meta .album.title {
+  .track-list .meta .album.title {
     position: absolute;
     bottom: 0;
     margin-right: 3rem;
@@ -675,7 +694,7 @@ html {
 }
 
 
-.album-listing .album.tracks {
+.track-list .album.tracks {
   background: #e3e3e3;
   /* padding: 2rem; */
   /* height: calc( 100vh - 17.35rem ); */
@@ -685,13 +704,13 @@ html {
   overflow: auto;
 }
 
-.album-listing .album.tracks table {
+.track-list .album.tracks table {
   width: 100%;
   max-height: 100%;
   border-collapse: collapse;
 }
 
-.album-listing .album.tracks thead tr th {
+.track-list .album.tracks thead tr th {
   padding-top: 2rem;
   padding-bottom: 2rem;
   text-align: left;
@@ -699,11 +718,11 @@ html {
   color: rgba( 0, 0, 0, .30 );
 }
 
-.album-listing .album.tracks tbody tr {
+.track-list .album.tracks tbody tr {
   transition: background-color 250ms ease;
 }
 
-.album-listing .album.tracks tbody tr td {
+.track-list .album.tracks tbody tr td {
   padding-top: 0.8rem;
   padding-bottom: 0.8rem;
   text-overflow: ellipsis;
@@ -711,40 +730,40 @@ html {
   overflow: hidden;
 }
 
-.album-listing .album.tracks tbody tr:hover {
+.track-list .album.tracks tbody tr:hover {
   background-color: rgba( 0, 0, 0, .3 ) !important;
   cursor: pointer;
 }
 
-.album-listing .album.tracks tbody tr.active {
+.track-list .album.tracks tbody tr.active {
   background-color: rgba( 0, 0, 0, .1 );
   cursor: pointer;
 }
 
-.album-listing .album.tracks thead tr th:first-child,
-.album-listing .album.tracks  tbody tr td:first-child {
+.track-list .album.tracks thead tr th:first-child,
+.track-list .album.tracks  tbody tr td:first-child {
   padding-left: 2rem;
   padding-right: 1rem;
 }
 
-.album-listing .album.tracks  tbody tr td:first-child {
+.track-list .album.tracks  tbody tr td:first-child {
   width: 1.5rem;
   padding-right: 1rem;
 }
 
-.album-listing .album.tracks  tbody tr td:nth-child(2) {
+.track-list .album.tracks  tbody tr td:nth-child(2) {
   width: 14.875rem;
   max-width: 14.875rem;
 }
 
-.album-listing .album.tracks thead tr th:last-child,
-.album-listing .album.tracks  tbody tr td:last-child {
+.track-list .album.tracks thead tr th:last-child,
+.track-list .album.tracks  tbody tr td:last-child {
   text-align: right;
   padding-right: 2rem;
 }
 
-.album-listing .album.tracks  tbody tr td:first-child,
-.album-listing .album.tracks  tbody tr td:last-child {
+.track-list .album.tracks  tbody tr td:first-child,
+.track-list .album.tracks  tbody tr td:last-child {
   color: rgba( 0, 0, 0, 0.30 );
   font-size: 0.9rem;
   font-weight: bold;
@@ -752,19 +771,19 @@ html {
 
 
 @media (max-width: 599px) {
-  .album-listing .album.tracks {
+  .track-list .album.tracks {
     min-height: calc( 100vh - 100vw - 6rem );
   }
 
-  .album-listing .album.tracks {
+  .track-list .album.tracks {
     padding-top: 1rem;
   }
 
-  .album-listing .album.tracks  tbody tr td:nth-child(2) {
+  .track-list .album.tracks  tbody tr td:nth-child(2) {
     width: auto;
   }
 
-  .album-listing .album.tracks tbody tr td {
+  .track-list .album.tracks tbody tr td {
     padding-top: 1rem;
     padding-bottom: 1rem;
   }
@@ -776,7 +795,7 @@ canvas[data-jigglypuff="analyser"] {
   height: 6rem;
   position: fixed;
   bottom: 4rem;
-  opacity: 0.5;
+  /* opacity: 0.8; */
   max-width: 46rem;
   pointer-events: none;
 }
@@ -822,7 +841,11 @@ canvas[data-jigglypuff="analyser"] {
   position: absolute;
   top: 1rem;
   left: 1rem;
+  right: 4.2rem;
   color: rgba( 0,0,0,.87);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-x: hidden;
 }
 
 .playing-now .track.artist {
@@ -871,14 +894,16 @@ canvas[data-jigglypuff="analyser"] {
   height: 0.25rem;
   cursor: pointer;
   background-color: rgba( 255, 255, 255, .3 );
+  overflow-x: hidden;
 }
 
 .playing-now .track.progress .indicator {
   height: 100%;
-  width: 0%;
-  background-color: black;
-  transition: width 100ms ease,
-              background-color 300ms ease;
+  width: 100%;
+  transform: translateX( -100% );
+  transition: transform 100ms ease;
+
+  pointer-events: none;
 }
 
 .hide {
@@ -887,6 +912,35 @@ canvas[data-jigglypuff="analyser"] {
 
 .fab-action .material-icons, .action .material-icons {
   vertical-align: middle;
+}
+
+.toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.2);
+  background-color: rgba( 20, 20, 20, 1 );
+  height: 4rem;
+  line-height: 4rem;
+  color: rgba( 255, 255, 255, 0.87 );
+
+  transform: background-color 250ms ease,
+             color 250ms ease,
+             height 100ms ease;
+}
+
+.toolbar.transparent {
+  background-color: rgba( 20, 20, 20, 0 );
+}
+
+.toolbar .title {
+  margin: 0;
+  padding: 0 1.2rem;
+  font-size: 1.2rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 @media (max-width: 599px) {

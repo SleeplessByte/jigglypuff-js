@@ -20,9 +20,8 @@
       var id3Cache = {};
 
       /**
-       * [function description]
-       * @param  {[type]} src [description]
-       * @return {[type]}     [description]
+       * Fetches the ID3 tags for a song
+       * @param  {url} src the song
        */
       return function( song ) {
 
@@ -70,8 +69,8 @@
       if ( isNaN( percentage ) )
         percentage = 0;
 
-      progressDisplay.style = "width: " + percentage + "%; background-color: " + vibrantColor;
-      var progress = requestAnimationFrame( drawProgress );
+      progressDisplay.style = "transform: translateX( -" + ( 100 - percentage ) + "% ); background-color: " + vibrantColor;
+      var progress = setTimeout( drawProgress, 100 );
     }
 
 
@@ -107,16 +106,16 @@
      * Sets the current album to the index i
      * @param {Integer} i the album index
      */
-    function setAlbum( album ) {
+    function playAlbum( album ) {
       player.setPlaylist( album.songs.map( function(s) { s.album = album; return s; } ) ).next();
     }
 
     /**
-     * [playAtPosition description]
+     * Play
      * @param  {[type]} event [description]
      * @return {[type]}       [description]
      */
-    function playAtPosition( event ) {
+    function onProgressTrackClicked( event ) {
       var pos = event.offsetX / progressTrack.getBoundingClientRect().width;
       player.setPosition( player.duration * pos );
     }
@@ -143,7 +142,15 @@
      * [resize description]
      * @return {[type]} [description]
      */
-    function resize() {
+    var resizeQueued = false;
+    function onResize() {
+      if ( resizeQueued )
+        return;
+      resizeQueued = true;
+      setTimeout( postResize, 0 );
+    }
+
+    function postResize() {
       analyserDisplay.width = analyserDisplay.getBoundingClientRect().width;
       analyserWidth = analyserDisplay.width;
       analyserHeight = analyserDisplay.height;
@@ -155,6 +162,8 @@
       // upper part of the graph will be mostly empty
       analyserPixelPerfectWidth = Math.round( 1.0 / analyserBufferLength * analyserWidth );
       analyserSkip = 2;
+
+      resizeQueued = false;
     }
 
     var analyserBufferLength, analyserBuffer, analyserWidth, analyserHeight,
@@ -186,13 +195,16 @@
     actionPrev.addEventListener( 'click', player.previous.bind( player ) );
     actionMute.addEventListener( 'click', player.toggleMute.bind( player ) );
     albumCoverDisplay.addEventListener( 'click', showCurrentAlbum );
-    progressTrack.addEventListener( 'click', playAtPosition );
-    actionPlayAlbum.addEventListener( 'click', playAlbum );
+    progressTrack.addEventListener( 'click', onProgressTrackClicked );
+    actionPlayAlbum.addEventListener( 'click', onActionPlayAlbum );
 
     var vibrantColor = '#000000';
+    var fftColor = 'rgba( 0, 0, 0, .87 )';
 
-    player.addListener( 'jigglypuff:prepare', function( detail ) {
-      console.log( arguments );
+    player.on( 'jigglypuff:prepare', function( detail, e ) {
+
+      console.info( detail, e );
+
       if ( detail.currentSong ) {
         var song = detail.currentSong;
 
@@ -214,6 +226,8 @@
             var swatches = vibrant( image );
             if (swatches.hasOwnProperty( 'Vibrant' ) && swatches['Vibrant'])
               vibrantColor = swatches['Vibrant'].getHex()
+              var rgb = swatches['Vibrant'].getRgb();
+              fftColor = 'rgba( ' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', 0.87 )';
 
           } );
           image.src = album.thumb;
@@ -223,56 +237,87 @@
       }
     });
 
-    player.addListener( 'jigglypuff:play', function() {
+    /**
+     * When the player starts playing
+     */
+    function onPlayerPlay() {
+      console.log( "player is playing" );
       actionPlay.style = "display: none;";
       actionPause.style = "display: inline-block;";
-    });
+    }
 
-    player.addListener( 'jigglypuff:pause', function() {
+    /**
+     * When the player is paused
+     */
+    function onPlayerPause() {
+      console.log( "player is paused" );
       actionPause.style = "display: none;";
       actionPlay.style = "display: inline-block;";
-    });
+    }
 
-    // Setup
-    actionPlay.style = "display: none;";
-    actionPause.style = "display: inline-block;";
-
+    /**
+     * Show the album that's in the current play
+     */
     function showCurrentAlbum() {
-      var album = Album( albumDisplay.getAttribute( 'data-album' ) );
+      var album = player.currentSong.album;
       window.MediaLibrary.hide();
       window.AlbumListing.show( album, player, skipToSongAndPlayAlbum );
     }
 
-    function skipToSongAndPlayAlbum() {
-      var song = this.getAttribute( 'data-song' );
-      var album = Album( this.getAttribute( 'data-album' ) );
-
-      playAlbum.bind( this )();
+    /**
+     * [skipToSongAndPlayAlbum description]
+     * @param  {[type]} album [description]
+     * @param  {[type]} song  [description]
+     * @return {[type]}       [description]
+     */
+    function skipToSongAndPlayAlbum( album, song ) {
+      clearAndPlayAlbum( album );
       while( player.nextSong && player.currentSong.track != +song ) {
         player.next();
       }
     }
 
-    function playAlbum() {
+    /**
+     * [onActionPlayAlbum description]
+     * @return {[type]} [description]
+     */
+    function onActionPlayAlbum() {
       var album = this.getAttribute( 'data-album' );
-      player.clearHistory();
-      setAlbum( Album( album ) );
+      clearAndPlayAlbum( Album( album ) );
     }
-    window.addEventListener( 'resize', resize );
+
+    /**
+     * [clearAndPlayAlbum description]
+     * @param  {[type]} album [description]
+     * @return {[type]}       [description]
+     */
+    function clearAndPlayAlbum( album ) {
+      player.clearHistory();
+      playAlbum( album );
+    }
+
+    player.on( 'jigglypuff:play', onPlayerPlay );
+    player.on( 'jigglypuff:pause', onPlayerPause );
+    window.addEventListener( 'resize', onResize );
+
+    // Setup
+    actionPlay.style = "display: inline-block;";
+    actionPause.style = "display: none";
 
     setTimeout( function() {
       // Start
       player.setVolume( 0.8 );
-      resize();
+      postResize();
+
       drawProgress();
       drawVisualiser();
 
-      setAlbum( Album( 'era' ) );
+      playAlbum( Album( 'era' ) );
 
-      window.MediaLibrary.glue( function( e ) {
-        window.MediaLibrary.hide();
-        window.AlbumListing.show( Album( e.currentTarget.getAttribute( 'data-album' ) ), player, skipToSongAndPlayAlbum );
+      window.MediaLibrary.glue( function( album ) {
+        window.AlbumListing.show( album, player, skipToSongAndPlayAlbum );
       } )
+      window.MediaLibrary.show();
     }, 0 );
 
     window.Player = player;

@@ -4,37 +4,31 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="manifest" href="manifest.json">
 
-        <title>Audio Player</title>
+        <title>Jigglypuff.js</title>
+
+        <link href="launcher-icon-2x.png" sizes="96x96" rel="shortcut icon" type="image/png" />
+        <link href="launcher-icon-3x.png" sizes="144x144" rel="shortcut icon" type="image/png" />
+        <link href="launcher-icon-4x.png" sizes="192x192" rel="shortcut icon" type="image/png" />
+        <meta name="theme-color" content="#121212">
+        <meta name="msapplication-navbutton-color" content="#121212">
+        <meta name="apple-mobile-web-app-status-bar-style" content="#121212">
 
         <link rel="stylesheet" href="style.css">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     </head>
     <body>
+        <figure data-jigglypuff="background-cover">
+            <figcaption></figcaption>
+        </figure>
+
         <section class="media-library">
             <ul>
-                <li>
-                    <figure class="media album"  data-album="era" data-jigglypuff="play-album"><img class="album cover" src="audio/E.R.A/cover.png">
-                        <figcaption class="meta">
-                            <h2 class="album title">E.R.A.</h2>
-                            <h3 class="album artist">Milan Rang</h3>
-                        </figcaption>
-                    </figure>
-                </li>
-
-                <li>
-                    <figure class="media album"  data-album="era2" data-jigglypuff="play-album"><img class="album cover" src="audio/E.R.A - The Outer Regions/cover.png">
-                        <figcaption class="meta">
-                            <h2 class="album title">E.R.A. - The Outer Regions</h2>
-                            <h3 class="album artist">Derk-Jan Karrenbeld</h3>
-                        </figcaption>
-                    </figure>
-                </li>
-
             </ul>
         </section>
 
-        <section class="album-listing hide">
+        <section class="track-list album-listing hide">
             <div class="hero">
                 <img class="album cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
                 <div class="styling"></div>
@@ -67,6 +61,41 @@
                 </table>
             </div>
         </section>
+
+        <section class="track-list up-next-list hide">
+            <div class="hero">
+                <img class="song album cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                <div class="styling"></div>
+                <div class="meta">
+                    <h2 class="song title"></h2>
+                    <h3 class="song artist hide-mobile"></h3>
+                </div>
+                <div class="actions"></div>
+
+                <button class="fab-action" data-jigglypuff="shuffle" data-album="1"><i class="material-icons">shuffle</i></button>
+            </div>
+
+            <div class="up-next tracks">
+                <table>
+                    <thead class="hide-mobile">
+                        <tr>
+                            <th colspan="2">Up next</th>
+                            <th class="hide-mobile">Artist</th>
+                            <th class="hide-mobile">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                    <tfoot>
+
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <nav class="toolbar">
+            <h1 class="title"></h1>
+        </nav>
 
         <section class="playing-now">
             <canvas data-jigglypuff="analyser"></canvas>
@@ -110,13 +139,34 @@
 
           window.CustomEvent = CustomEvent;
         }();
+
+        /**
+         * [vibrant description]
+         * @param  {[type]} source [description]
+         * @return {[type]}        [description]
+         */
+        function vibrant( source ) {
+          var vibrant = new Vibrant( source );
+          return vibrant.swatches();
+          /*
+           * Results into:
+           * Vibrant #7a4426
+           * Muted #7b9eae
+           * DarkVibrant #348945
+           * DarkMuted #141414
+           * LightVibrant #f3ccb4
+           */
+        }
         </script>
         <script src="manifest.js" defer></script>
         <script src="id3.min.js" defer></script>
         <script src="Vibrant.min.js" defer></script>
         <script src="EventManager.min.js" defer></script>
         <script src="jigglypuff.js" defer></script>
+        <script src="toolbar.js" defer></script>
+        <script src="library.js" defer></script>
         <script src="album.js" defer></script>
+        <script src="now.js" defer></script>
         <script src="script.js" defer></script>
     </body>
 </html>

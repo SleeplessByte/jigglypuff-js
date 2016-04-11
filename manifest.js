@@ -2,6 +2,10 @@
   'use strict';
 
   var Manifest = {
+    playlists: {
+
+    },
+
     albums: {
       era: {
         id: 'era',
@@ -75,6 +79,7 @@
           },
         ]
       },
+
       era2: {
         id: 'era2',
         name: 'E.R.A. - The Outer Regions',

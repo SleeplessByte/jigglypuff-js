@@ -2,8 +2,8 @@
   'use strict';
 
   var albumListing, albumListingHero, albumListingNodes, albumListingTracks;
-  var mediaLibrary, mediaLibraryNodes;
   var actionPlayAlbum, actionGoToLibrary;
+  var backgroundCover;
 
   function Album( source ) {
     for( var k in source ) {
@@ -62,39 +62,33 @@
     }
   })();
 
-  /**
-   * [vibrant description]
-   * @param  {[type]} source [description]
-   * @return {[type]}        [description]
-   */
-  function vibrant( source ) {
-    var vibrant = new Vibrant( source );
-    return vibrant.swatches();
-    /*
-     * Results into:
-     * Vibrant #7a4426
-     * Muted #7b9eae
-     * DarkVibrant #348945
-     * DarkMuted #141414
-     * LightVibrant #f3ccb4
-     */
+  function AlbumListing() {
+    EventManager.eventify( this );
+  }
+
+  AlbumListing.prototype.hide = function() {
+    albumListing.classList.add( 'hide' );
+    this.trigger( 'hide' );
   }
 
   /**
    * [showAlbumListing description]
-   * @param  {[type]} album                  [description]
-   * @param  {[type]} skipToSongAndPlayAlbum [description]
-   * @return {[type]}                        [description]
+   * @param  {Album} album          [description]
+   * @param  {Player} player         [description]
+   * @param  {Function(Album, integer)} actionPlayThis [description]
    */
-  function showAlbumListing( album, player, actionPlayThis ) {
+  AlbumListing.prototype.show = function( album, player, actionPlayThis ) {
     albumListing.classList.remove( 'hide' );
 
-    document.body.parentElement.style = "";
+    backgroundCover.style = "";
+    backgroundCover.classList.remove( 'loaded' );
+
     albumListingTracks.setAttribute( 'data-album', album.id );
 
     var bg = new Image();
     bg.addEventListener( 'load', function() {
-      document.body.parentElement.style = "background-image: url(" + bg.src + ");";
+      backgroundCover.style = "background-image: url(" + bg.src + ");";
+      backgroundCover.classList.add( 'loaded' );
     } );
     if ( window.innerWidth > 599 )
       bg.src = album.artist.srcset.high;
@@ -144,7 +138,7 @@
     var row, track, name, artist, duration;
     var _self = this;
 
-    album.songs.forEach( function( song, i ) {
+    function appendSong( song, i ) {
       row = document.createElement( 'tr' );
       row.setAttribute( 'data-album', album.id );
       row.setAttribute( 'data-song', song.track );
@@ -172,11 +166,21 @@
       row.appendChild( duration );
       tracks.appendChild( row );
 
-      row.addEventListener( 'click', actionPlayThis );
-    } );
+      row.addEventListener( 'click', function( e ) {
+        var song = this.getAttribute( 'data-song' );
+        var album = get( this.getAttribute( 'data-album' ) );
+        actionPlayThis( album, song );
+      } );
+    }
+
+    album.songs.forEach( appendSong );
+    window.Toolbar.transparent = true;
+    window.Toolbar.setTitle( album.name ).hide();
+    
+    this.trigger( 'show', [{ album: album }] );
   }
 
-  function updateCurrentListing( album, song ) {
+  AlbumListing.prototype.update = function( album, song ) {
     for (var i = 0; i < albumListingTracks.childNodes.length; i++) {
       var node = albumListingTracks.childNodes[i];
 
@@ -229,37 +233,10 @@
 
   }
 
-  function hideMediaLibrary() {
-    mediaLibrary.classList.add( 'hide' );
-  }
-
-  function showMediaLibrary() {
-    mediaLibrary.classList.remove( 'hide' );
-    albumListing.classList.add( 'hide' );
-  }
-
   window.Album = get;
-  window.AlbumListing = {
-    show: showAlbumListing,
-    update: updateCurrentListing
-  }
-
-  window.MediaLibrary = {
-    glue: bindMediaLibraryToAction,
-    hide: hideMediaLibrary,
-    show: showMediaLibrary,
-  }
-
-  function bindMediaLibraryToAction( action ) {
-    for( var i = 0; i < mediaLibraryNodes.length; i++ ) {
-      mediaLibraryNodes[i].addEventListener( 'click', action )
-    }
-  }
+  window.AlbumListing = new AlbumListing();
 
   document.addEventListener( 'DOMContentLoaded', function( event )  {
-    mediaLibrary = document.querySelector( '.media-library' );
-    mediaLibraryNodes = document.querySelectorAll( '.media-library .media' );
-
     albumListing = document.querySelector( '.album-listing' );
     albumListingHero = document.querySelector( '.album-listing .hero' );
     albumListingNodes = document.querySelectorAll( '.album-listing .album' );
@@ -267,22 +244,10 @@
 
     actionPlayAlbum = document.querySelector( '.album-listing .fab-action' );
     actionGoToLibrary = document.querySelector( '[data-jigglypuff="show-media-library"]' );
-    actionGoToLibrary.addEventListener( 'click', window.MediaLibrary.show );
+    actionGoToLibrary.addEventListener( 'click', window.MediaLibrary.show.bind( window.MediaLibrary ) );
 
-    var style = function( c ) {
-      var swatches = vibrant( c );
-      console.log( swatches );
-      if ( swatches[ "DarkMuted" ] )
-        c.parentElement.style = "background-color: " + swatches[ "DarkMuted" ].getHex();
-    }
+    backgroundCover = document.querySelector( '[data-jigglypuff="background-cover"]' );
 
-    for( var i = 0; i < mediaLibraryNodes.length; i++ ) {
-      var img = mediaLibraryNodes[i].childNodes[0];
-      img.addEventListener( 'load', function() {
-        style( img );
-      });
-      if( img.complete )
-        style( img );
-    }
+    window.MediaLibrary.on( 'show', window.AlbumListing.hide.bind( window.AlbumListing ) );
   } );
 }();
