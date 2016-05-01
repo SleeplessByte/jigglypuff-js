@@ -17,6 +17,7 @@ html {
 
 body {
   margin: 0;
+  min-width: 20rem;
 }
 
 /* HTML5 display definitions
@@ -443,13 +444,18 @@ html {
   opacity: 0;
 }
 
+/*[data-jigglypuff="background-cover"]:hover, body:hover [data-jigglypuff="background-cover"] {
+  transform: scale(1.01,1.01);
+}*/
+
 [data-jigglypuff="background-cover"].figcaption {
   display: none;
 }
 
 [data-jigglypuff="background-cover"].loaded {
   opacity: 1;
-  transition: opacity 500ms ease;
+  transition: opacity 500ms ease,
+              transform 250ms ease;
 }
 
 .media-library {
@@ -499,7 +505,7 @@ html {
   color: rgba( 255, 255, 255, 0.7 );
   width: 100%;
   overflow: hidden;
-  margin: 2px;
+  margin: 0;
   background: rgb( 30, 30, 30 );
   transition: background 250ms ease;
   cursor: pointer;
@@ -898,12 +904,17 @@ canvas[data-jigglypuff="analyser"] {
 }
 
 .playing-now .track.progress .indicator {
+  position: absolute;
   height: 100%;
   width: 100%;
   transform: translateX( -100% );
   transition: transform 100ms ease;
 
   pointer-events: none;
+}
+
+.playing-now .track.progress .indicator.buffer {
+  opacity: 0.3;
 }
 
 .hide {
