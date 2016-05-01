@@ -83,6 +83,12 @@
     Object.defineProperty( this, 'nextSong', { get: function() { if ( this._playOrder.length === 0 ) { return null } return this._playList[ this._playOrder[0] ] }, enumerable: true } )
     Object.defineProperty( this, 'currentSong', { get: function() { if ( this._played.length === 0 ) { return null } return this._played[ this._played.length - 1 ] }, enumerable: true } )
     Object.defineProperty( this, 'previousSong', { get: function() { if ( this._played.length <= 1 ) { return null } return this._played[ this._played.length - 2 ] }, enumerable: true } )
+    Object.defineProperty( this, 'playList', { get: function() {
+      return (this.currentSong ? [this.currentSong] : []).concat(
+        this._playOrder.length === 0 ? [] :
+        this._playOrder.map( (function( o ) { return this._playList[ o ] }).bind( this ) )
+      )
+    }, enumerable: true } )
 
     this._listen( audioElement )
     this.connect( nodes )
@@ -173,6 +179,9 @@
       ranges[i].start = this._audioElement.buffered.start( i )
       ranges[i].end = this._audioElement.buffered.end( i )
     }
+
+    if ( ranges.length == 0 )
+      ranges.push( { start: 0, end: -1 } )
 
     this.trigger( 'jigglypuff:buffer', [{ ranges: ranges }] )
   }

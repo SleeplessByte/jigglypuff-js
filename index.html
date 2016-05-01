@@ -70,7 +70,9 @@
                     <h2 class="song title"></h2>
                     <h3 class="song artist hide-mobile"></h3>
                 </div>
-                <div class="actions"></div>
+                <div class="actions">
+                    <button class="action" data-jigglypuff="show-media-library"><i class="material-icons">library_music</i></button>
+                </div>
 
                 <button class="fab-action" data-jigglypuff="shuffle" data-album="1"><i class="material-icons">shuffle</i></button>
             </div>
@@ -148,11 +150,27 @@
           window.CustomEvent = CustomEvent
         }()
 
+        function nextPowerOfTwo( v ) {
+          'use strict'
+
+          v = v - 1
+          v |= v >> 1
+          v |= v >> 2
+          v |= v >> 4
+          v |= v >> 8
+          v |= v >> 16
+          return v + 1
+        }
+
         // No-op for console
         if ( !console )
           console = {}
         if ( !console.log )
           console.log = function() {}
+        [ 'info', 'debug', 'warn' ].forEach( function( f ) {
+          if( !console[f] )
+            console[f] = console.log
+        } )
 
         /**
          * Get vibrant swatches
@@ -172,18 +190,21 @@
            */
         }
         </script>
-
         <script src="manifest.js" defer></script>
+
         <script src="id3.min.js" defer></script>
         <script src="Vibrant.min.js" defer></script>
         <script src="EventManager.min.js" defer></script>
         <script src="jigglypuff.js" defer></script>
+        <script src="track-listing.js" defer></script>
         <script src="toolbar.js" defer></script>
         <script src="library.js" defer></script>
         <script src="artist.js" defer></script>
         <script src="song.js" defer></script>
         <script src="album.js" defer></script>
         <script src="now.js" defer></script>
+        <script src="now-widget.js" defer></script>
+
         <script src="script.js" defer></script>
     </body>
 </html>

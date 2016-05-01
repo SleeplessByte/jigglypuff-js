@@ -1,30 +1,33 @@
 +function() {
   'use strict';
 
-  var albumListing, albumListingHero, albumListingNodes, albumListingTracks;
-  var actionPlayAlbum, actionGoToLibrary;
-  var backgroundCover;
-
   function Album( source ) {
     for( var k in source ) {
       if ( source.hasOwnProperty(k))
       {
-        var v = source[k];
+        var v = source[k]
 
         if ( k === 'artist' ) {
-          var transfer = v;
-          v  = window.Artist( v.id );
+          var transfer = v
+          v  = window.Artist( v.id )
 
           // transfer props
           for ( var o in transfer ) {
             if ( o != 'id' && transfer.hasOwnProperty( o ) )
-              Object.defineProperty( this, "artist_" + o, { value: transfer[o], enumerable: true } );
+              Object.defineProperty( this, "artist_" + o, { value: transfer[o], enumerable: true } )
           }
         }
 
-        Object.defineProperty( this, k, { value: v, enumerable: true } );
+        Object.defineProperty( this, k, { value: v, enumerable: true } )
       }
-    };
+    }
+
+    //function assignAlbum( song ) {
+    //   song.album = this
+    //}
+
+    //if ( this.songs && this.songs.length && !this.songs[0].album )
+    //  this.songs.forEach( assignAlbum.bind( this ) )
   }
 
   /**
@@ -77,13 +80,25 @@
     }
   })();
 
-  function AlbumListing() {
-    EventManager.eventify( this );
+  function AlbumListing( querySelector, heroSelector ) {
+    TrackListing.call( this, querySelector, heroSelector )
+    EventManager.eventify( this )
+  }
+
+  AlbumListing.prototype = Object.create( window.TrackListing.prototype )
+
+  AlbumListing.prototype.DOMContentLoaded = function( event ) {
+    TrackListing.prototype.DOMContentLoaded.call( this, event )
+
+    this.actionPlayAlbum = document.querySelector( '.album-listing .fab-action' )
+    this.actionGoToLibrary = document.querySelector( this._querySelector + ' [data-jigglypuff="show-media-library"]' )
+    this.actionGoToLibrary.addEventListener( 'click', window.MediaLibrary.show.bind( window.MediaLibrary ) )
+    this.backgroundCover = document.querySelector( '[data-jigglypuff="background-cover"]' )
   }
 
   AlbumListing.prototype.hide = function() {
-    albumListing.classList.add( 'hide' );
-    this.trigger( 'hide' );
+    TrackListing.prototype.hide.call( this )
+    this.trigger( 'hide' )
   }
 
   /**
@@ -92,176 +107,85 @@
    * @param  {Player} player         [description]
    * @param  {Function(Album, integer)} actionPlayThis [description]
    */
-  AlbumListing.prototype.show = function( album, player, actionPlayThis ) {
-    albumListing.classList.remove( 'hide' );
+  AlbumListing.prototype.show = function( album, player ) {
+    function assignAlbum( s ) {
+      s.album = album
+      return s
+    }
+    var songs = album.songs.map( assignAlbum )
+    TrackListing.prototype.show.call( this, songs, player )
+    this.updateHero( {
+        color: album.color,
+        cover: album.cover,
+        thumb: album.thumb,
+        title: album.name,
+        artist: album.artist.name,
+        datetime: ''
+      }
+    )
 
-    backgroundCover.style = "";
-    backgroundCover.classList.remove( 'loaded' );
+    this.backgroundCover.style = ""
+    this.backgroundCover.classList.remove( 'loaded' )
 
-    albumListingTracks.setAttribute( 'data-album', album.id );
+    var bg = new Image(),
+        bgCover = this.backgroundCover
 
-    var bg = new Image();
     bg.addEventListener( 'load', function() {
-      backgroundCover.style = "background-image: url(" + bg.src + ");";
-      backgroundCover.classList.add( 'loaded' );
-    } );
+      bgCover.style = "background-image: url(" + bg.src + ");"
+      bgCover.classList.add( 'loaded' )
+    } )
     if ( window.innerWidth > 599 )
-      bg.src = album.artist_srcset.high;
+      bg.src = album.artist_srcset.high
 
-    for (var i = 0; i < albumListingNodes.length; ++i) {
-      var field = albumListingNodes[i];
-      if( field.classList.contains( 'cover' ) ) {
-        field.style = "background-color: " + album.color;
-        var image = new Image();
-        image.addEventListener( 'load', (function( _local ) {
-          var _field = _local;
-          return function() {
-            _field.src = album.cover;
-            var swatches = vibrant( image );
-            styleAlbumListing( swatches );
-          };
-        })( field ) );
+    this.listingTracks.setAttribute( 'data-album', album.id )
+    this.actionPlayAlbum.setAttribute( 'data-album', album.id )
 
-        image.src = album.thumb;
-        continue;
-      }
-
-      if( field.classList.contains( 'title' ) ) {
-        field.innerHTML = album.name;
-        continue;
-      }
-
-      if( field.classList.contains( 'artist' ) ) {
-        field.innerHTML = album.artist.name;
-        continue;
-      }
-
-      if( field.classList.contains( 'datetime' ) ) {
-        continue;
-      }
-    }
-
-    actionPlayAlbum.setAttribute( 'data-album', album.id );
-
-    var tracks = albumListingTracks;
-    tracks.innerHTML = "";
-
-    var currentAlbum = player.currentSong.album;
-    var currentSong = player.currentSong;
-
-    var row, track, name, artist, duration;
-    var _self = this;
-
-    function appendSong( song, i ) {
-      row = document.createElement( 'tr' );
-      row.setAttribute( 'data-album', album.id );
-      row.setAttribute( 'data-song', song.track );
-
-      if ( currentAlbum.id === album.id && +currentSong.track === +song.track )
-        row.classList.add( 'active' );
-
-      track = document.createElement( 'td' );
-      track.innerHTML = song.track;
-
-      name = document.createElement( 'td' );
-      name.innerHTML = song.name;
-
-      artist = document.createElement( 'td' );
-      artist.setAttribute( 'class', 'hide-mobile');
-      artist.innerHTML = (song.artist || album.artist).name;
-
-      duration = document.createElement( 'td' );
-      duration.setAttribute( 'class', 'hide-mobile');
-      duration.innerHTML = Math.floor( song.duration / 60 ) + ":" + ("00" + song.duration % 60 ).slice( -2 );
-
-      row.appendChild( track );
-      row.appendChild( name );
-      row.appendChild( artist );
-      row.appendChild( duration );
-      tracks.appendChild( row );
-
-      row.addEventListener( 'click', function( e ) {
-        var song = this.getAttribute( 'data-song' );
-        var album = get( this.getAttribute( 'data-album' ) );
-        actionPlayThis( album, song );
-      } );
-    }
-
-    album.songs.forEach( appendSong );
     window.Toolbar.transparent = true;
-    window.Toolbar.setTitle( album.name ).hide();
+    window.Toolbar.setTitle( album.name ).hide()
 
-    this.trigger( 'show', [{ album: album }] );
+    this.trigger( 'show', [{ album: album }] )
+  }
+
+  AlbumListing.prototype.setup = function( player ) {
+    function update( detail ) {
+      if ( detail.currentSong ) {
+        var song = detail.currentSong
+        if ( song.album  ) {
+          this.update.call( this, song.album, song )
+        }
+      }
+    }
+
+    player.on( 'jigglypuff:prepare', update.bind( this ) )
   }
 
   AlbumListing.prototype.update = function( album, song ) {
-    for (var i = 0; i < albumListingTracks.childNodes.length; i++) {
-      var node = albumListingTracks.childNodes[i];
+    for (var i = 0; i < this.listingTracks.childNodes.length; i++) {
+      var node =  this.listingTracks.childNodes[i]
 
       if ( !node.getAttribute )
-        continue;
+        continue
 
       if ( node.getAttribute( 'data-album' ) === album.id ) {
         if ( +node.getAttribute( 'data-song' ) === +song.track ) {
-          node.classList.add( 'active' );
-          continue;
+          node.classList.add( 'active' )
+          continue
         }
       }
 
-      node.classList.remove( 'active' );
+      node.classList.remove( 'active' )
     }
   }
 
-  /**
-   * [styleAlbumListing description]
-   * @param  {[type]} swatches [description]
-   * @return {[type]}          [description]
-   */
-  function styleAlbumListing( swatches ) {
-    var node;
-    var styling = document.querySelector( '.album-listing .styling' );
-    while (styling.lastChild) {
-      styling.removeChild(styling.lastChild);
-    }
+  AlbumListing.prototype.constructor = AlbumListing
 
-    function addSwatch( styling, color, name ) {
-      node = document.createElement( 'div' );
-      node.classList.add( 'swatch' );
-      node.classList.add( name );
-      node.style = "background-color: " + color;
-      styling.appendChild( node );
-    }
-
-    var setHero = false;
-    [ 'LightVibrant', 'Vibrant', 'DarkVibrant', 'DarkMuted', 'Muted', 'LightMuted' ].forEach( function( e, i ) {
-      if (swatches.hasOwnProperty( e) && swatches[e]) {
-        addSwatch( styling, swatches[e].getHex(), e );
-
-        if ( !setHero ) {
-          var rgb = swatches[e].getRgb();
-          albumListingHero.style = "background-color: rgb( " + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ");";
-          setHero = true;
-        }
-      }
-    });
-
-  }
-
-  window.Album = get;
-  window.AlbumListing = new AlbumListing();
+  window.Album = get
+  window.AlbumListing = new AlbumListing( '.album-listing', '.album' )
 
   document.addEventListener( 'DOMContentLoaded', function( event )  {
-    albumListing = document.querySelector( '.album-listing' );
-    albumListingHero = document.querySelector( '.album-listing .hero' );
-    albumListingNodes = document.querySelectorAll( '.album-listing .album' );
-    albumListingTracks = document.querySelector( '.album-listing .album.tracks tbody' );
+    window.AlbumListing.DOMContentLoaded( event )
 
-    actionPlayAlbum = document.querySelector( '.album-listing .fab-action' );
-    actionGoToLibrary = document.querySelector( '[data-jigglypuff="show-media-library"]' );
-    actionGoToLibrary.addEventListener( 'click', window.MediaLibrary.show.bind( window.MediaLibrary ) );
-
-    backgroundCover = document.querySelector( '[data-jigglypuff="background-cover"]' );
-
-    window.MediaLibrary.on( 'show', window.AlbumListing.hide.bind( window.AlbumListing ) );
-  } );
-}();
+    window.MediaLibrary.on( 'show', window.AlbumListing.hide.bind( window.AlbumListing ) )
+    window.NowListing.on( 'show', window.AlbumListing.hide.bind( window.AlbumListing ) )
+  } )
+}()

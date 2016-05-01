@@ -26,20 +26,6 @@
     this.trigger( 'show' )
   }
 
-  /**
-   * Glues an action to library nodes
-   * @param  {Function(Album)} action function that takes an album
-   */
-  MediaLibrary.prototype.glue = function( action ) {
-    for( var i = 0; i < mediaLibraryNodes.length; i++ ) {
-      mediaLibraryNodes[i].addEventListener( 'click',
-        function( e ) {
-          action( Album( e.currentTarget.getAttribute( 'data-album' ) ) )
-        }
-      )
-    }
-  }
-
   function setup() {
 
     function addAlbum( id, album ) {
@@ -108,15 +94,23 @@
       }
     }
 
+    function onNodeClick( e ) {
+      window.MediaLibrary.trigger( 'library:album', [Album( e.currentTarget.getAttribute( 'data-album' ) )] )
+    }
+
     for( var i = 0; i < mediaLibraryNodes.length; i++ ) {
-      var img = mediaLibraryNodes[i].childNodes[0]
+      var node = mediaLibraryNodes[i]
+      var img = node.childNodes[0]
       img.addEventListener( 'load', styleNodeFn( img ) )
 
       if( img.complete )
         style( img )
+
+      node.addEventListener( 'click', onNodeClick )
     }
 
     window.AlbumListing.on( 'show', window.MediaLibrary.hide.bind( window.MediaLibrary ) )
+    window.NowListing.on( 'show', window.MediaLibrary.hide.bind( window.MediaLibrary ) )
   } )
 
 
