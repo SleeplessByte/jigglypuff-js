@@ -47,7 +47,7 @@
 
           var songs = player.playList
           this.build.call( this, songs, player )
-          this.updateHeroAndBg( album, song )
+          this.updateHeroAndBg( song.album, song )
 
         }
       }
