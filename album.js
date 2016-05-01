@@ -8,7 +8,22 @@
   function Album( source ) {
     for( var k in source ) {
       if ( source.hasOwnProperty(k))
-        Object.defineProperty( this, k, { value: source[k] } );
+      {
+        var v = source[k];
+
+        if ( k === 'artist' ) {
+          var transfer = v;
+          v  = window.Artist( v.id );
+
+          // transfer props
+          for ( var o in transfer ) {
+            if ( o != 'id' && transfer.hasOwnProperty( o ) )
+              Object.defineProperty( this, "artist_" + o, { value: transfer[o], enumerable: true } );
+          }
+        }
+
+        Object.defineProperty( this, k, { value: v, enumerable: true } );
+      }
     };
   }
 
@@ -91,11 +106,10 @@
       backgroundCover.classList.add( 'loaded' );
     } );
     if ( window.innerWidth > 599 )
-      bg.src = album.artist.srcset.high;
+      bg.src = album.artist_srcset.high;
 
     for (var i = 0; i < albumListingNodes.length; ++i) {
       var field = albumListingNodes[i];
-
       if( field.classList.contains( 'cover' ) ) {
         field.style = "background-color: " + album.color;
         var image = new Image();
@@ -154,7 +168,7 @@
 
       artist = document.createElement( 'td' );
       artist.setAttribute( 'class', 'hide-mobile');
-      artist.innerHTML = song.artist;
+      artist.innerHTML = (song.artist || album.artist).name;
 
       duration = document.createElement( 'td' );
       duration.setAttribute( 'class', 'hide-mobile');
@@ -176,7 +190,7 @@
     album.songs.forEach( appendSong );
     window.Toolbar.transparent = true;
     window.Toolbar.setTitle( album.name ).hide();
-    
+
     this.trigger( 'show', [{ album: album }] );
   }
 
