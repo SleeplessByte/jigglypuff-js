@@ -67,11 +67,12 @@
       }
     )
 
-    var newStyle = "background-image: url(" + album.artist_srcset.high + ");",
+    var src = album.artist_srcset.high,
+        newStyle = "background-image: url(" + src + ");",
         bg = new Image(),
         bgCover = this.backgroundCover
 
-    if ( bgCover.style != newStyle ) {
+    if ( bgCover.getAttribute( 'data-src' ) != src ) {
       this.backgroundCover.style = ""
       this.backgroundCover.classList.remove( 'loaded' )
 
@@ -79,8 +80,10 @@
         bgCover.style = newStyle
         bgCover.classList.add( 'loaded' )
       } )
-      if ( window.innerWidth > 599 )
+      if ( window.innerWidth > 599 ) {
         bg.src = album.artist_srcset.high
+        bgCover.setAttribute( 'data-src', src )
+      }
     }
   }
 
