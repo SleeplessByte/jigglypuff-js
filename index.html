@@ -125,6 +125,7 @@
                 <button class="action hide" data-jigglypuff="mute"><i class="material-icons">volume_off</i></button>
             </div>
             <div class="track progress" data-jigglypuff="song-progress-track">
+                <div class="buffer indicator" data-jigglypuff="song-buffered"></div>
                 <div class="indicator" data-jigglypuff="song-progress"></div>
             </div>
         </section>
@@ -132,25 +133,31 @@
         <script>
         // polyfill CustomEvent
         +function () {
-          'use strict';
-          if ( typeof window.CustomEvent === "function" ) return false;
+          'use strict'
+          if ( typeof window.CustomEvent === "function" )
+            return false
 
           function CustomEvent ( event, params ) {
-            params = params || { bubbles: false, cancelable: false, detail: undefined };
-            var evt = document.createEvent( 'CustomEvent' );
-            evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
-            return evt;
+            params = params || { bubbles: false, cancelable: false, detail: undefined }
+            var evt = document.createEvent( 'CustomEvent' )
+            evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail )
+            return evt
            }
 
-          CustomEvent.prototype = window.Event.prototype;
+          CustomEvent.prototype = window.Event.prototype
+          window.CustomEvent = CustomEvent
+        }()
 
-          window.CustomEvent = CustomEvent;
-        }();
+        // No-op for console
+        if ( !console )
+          console = {}
+        if ( !console.log )
+          console.log = function() {}
 
         /**
-         * [vibrant description]
-         * @param  {[type]} source [description]
-         * @return {[type]}        [description]
+         * Get vibrant swatches
+         * @param  {image} source the image
+         * @return {Array<Swatch>} swatches
          */
         function vibrant( source ) {
           var vibrant = new Vibrant( source );
@@ -165,6 +172,7 @@
            */
         }
         </script>
+
         <script src="manifest.js" defer></script>
         <script src="id3.min.js" defer></script>
         <script src="Vibrant.min.js" defer></script>
@@ -172,6 +180,8 @@
         <script src="jigglypuff.js" defer></script>
         <script src="toolbar.js" defer></script>
         <script src="library.js" defer></script>
+        <script src="artist.js" defer></script>
+        <script src="song.js" defer></script>
         <script src="album.js" defer></script>
         <script src="now.js" defer></script>
         <script src="script.js" defer></script>
