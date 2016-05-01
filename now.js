@@ -32,7 +32,31 @@
 
     var song = player.currentSong
     var album = song.album
+    this.updateHeroAndBg( album, song )
+    window.Toolbar.transparent = true;
+    window.Toolbar.setTitle( 'Now Playing' ).hide()
 
+    this.trigger( 'show', [] )
+  }
+
+  NowListing.prototype.setup = function( player ) {
+    function update( detail ) {
+      if ( detail.currentSong ) {
+        var song = detail.currentSong
+        if ( song.album  ) {
+
+          var songs = player.playList
+          this.build.call( this, songs, player )
+          this.updateHeroAndBg( album, song )
+
+        }
+      }
+    }
+
+    player.on( 'jigglypuff:prepare', update.bind( this ) )
+  }
+
+  NowListing.prototype.updateHeroAndBg = function( album, song ) {
     this.updateHero( {
         color: album.color,
         cover: album.cover,
@@ -58,39 +82,6 @@
       if ( window.innerWidth > 599 )
         bg.src = album.artist_srcset.high
     }
-
-    window.Toolbar.transparent = true;
-    window.Toolbar.setTitle( 'Now Playing' ).hide()
-
-    this.trigger( 'show', [] )
-  }
-
-  NowListing.prototype.setup = function( player ) {
-    function update( detail ) {
-      if ( detail.currentSong ) {
-        var song = detail.currentSong
-        if ( song.album  ) {
-
-          var songs = player.playList
-          this.build.call( this, songs, player )
-
-          var song = player.currentSong
-          var album = song.album
-
-          this.updateHero( {
-              color: album.color,
-              cover: album.cover,
-              thumb: album.thumb,
-              title: song.name,
-              artist: album.artist.name,
-              datetime: album.name
-            }
-          )
-        }
-      }
-    }
-
-    player.on( 'jigglypuff:prepare', update.bind( this ) )
   }
 
   NowListing.prototype.update = function( album, song ) {
